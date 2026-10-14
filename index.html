@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulateur SCI Alsace</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Simulateur d'achat immobilier locatif en SCI sur 20 ans, avec les prix et loyers au m² de six villes d'Alsace et de Moselle.">
+<meta name="theme-color" content="#16202c">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316202c'/%3E%3Cpath d='M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z' fill='%23e8795f'/%3E%3Cpath d='M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z' fill='%23f3c2b4'/%3E%3Cg fill='%2316202c'%3E%3Crect x='19' y='18' width='5' height='5' rx='1'/%3E%3Crect x='28' y='18' width='5' height='5' rx='1'/%3E%3Crect x='19' y='27' width='5' height='5' rx='1'/%3E%3Crect x='28' y='27' width='5' height='5' rx='1'/%3E%3Crect x='19' y='36' width='5' height='5' rx='1'/%3E%3Crect x='28' y='36' width='5' height='5' rx='1'/%3E%3Crect x='23' y='45' width='6' height='9' rx='1'/%3E%3Crect x='41.5' y='31' width='5' height='4' rx='1'/%3E%3Crect x='41.5' y='39' width='5' height='4' rx='1'/%3E%3C/g%3E%3Crect x='10' y='53' width='44' height='3' rx='1.5' fill='%23f3c2b4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Mise en page : bandeau résultat sombre pleine largeur, sélecteur de villes en tuiles, puis réglages (gauche) et détails (droite).
+   Pleine largeur sur ordinateur, une colonne aérée et une barre de résultat fixe en bas sur téléphone. */
+:root{
+  --bg:#f1f3f6; --panel:#ffffff; --ink:#16202c; --ink-2:#4a5767; --ink-3:#717d8b;
+  --line:#dde2e8; --field:#f6f8fa;
+  --accent:#b4492f; --accent-2:#e8795f; --accent-soft:#fbe9e3;
+  --band:#16202c; --band-ink:#f3f5f8; --band-2:#aab5c2; --band-line:#2b3746;
+  --pos:#2a78d6; --neg:#e34948; --good:#1d7a4a; --good-soft:#e2f3ea; --bad-soft:#fde8e8;
+  --c-credit:#2a78d6; --c-charges:#eda100; --c-impot:#6250d6; --c-loyer:#1baf7a;
+  --scrim:rgba(16,22,30,.4);
+  --r:14px;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --panel:#18202a; --ink:#eef1f5; --ink-2:#b4bfcb; --ink-3:#8a96a3; --line:#2a3440; --field:#131a22;
+  --accent:#ef8a70; --accent-2:#ef8a70; --accent-soft:#3a2520;
+  --band:#0a0e13; --band-ink:#eef1f5; --band-2:#9aa6b3; --band-line:#232d39;
+  --pos:#3987e5; --neg:#e66767; --good:#4cc283; --good-soft:#15301f; --bad-soft:#3a1c1c;
+  --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9; --c-loyer:#199e70;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --panel:#18202a; --ink:#eef1f5; --ink-2:#b4bfcb; --ink-3:#8a96a3; --line:#2a3440; --field:#131a22;
+  --accent:#ef8a70; --accent-2:#ef8a70; --accent-soft:#3a2520;
+  --band:#0a0e13; --band-ink:#eef1f5; --band-2:#9aa6b3; --band-line:#232d39;
+  --pos:#3987e5; --neg:#e66767; --good:#4cc283; --good-soft:#15301f; --bad-soft:#3a1c1c;
+  --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9; --c-loyer:#199e70;
+  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.gut{padding-left:max(clamp(16px,3vw,48px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,3vw,48px),env(safe-area-inset-right,0px))}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* ---------- barre du haut ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--band);color:var(--band-ink);border-bottom:1px solid var(--band-line)}
+.top .row{display:flex;align-items:center;gap:16px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:18px;white-space:nowrap}
+.brand svg{width:30px;height:30px;flex:none}
+.top nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.top nav a{display:flex;align-items:center;gap:6px;color:var(--band-2);text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:500;white-space:nowrap}
+.top nav a:hover,.top nav a:focus-visible{color:var(--band-ink);background:var(--band-line)}
+.top nav svg{width:16px;height:16px}
+@media (max-width:720px){.brand span.long{display:none}.top nav a span{display:none}.top nav a{padding:10px}.top nav svg{width:20px;height:20px}}
+
+/* ---------- bandeau résultat ---------- */
+.band{background:var(--band);color:var(--band-ink);padding-block:28px 34px}
+.band-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,4vw,64px);align-items:center}
+@media (max-width:960px){.band-grid{grid-template-columns:minmax(0,1fr)}}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);font-weight:600;margin-bottom:8px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,4.2vw,52px);line-height:1.04;margin:0 0 12px;text-wrap:balance;letter-spacing:-.02em}
+.band p.lead{color:var(--band-2);margin:0;max-width:60ch;font-size:15.5px}
+.hint{display:inline-flex;gap:8px;align-items:center;margin-top:16px;font-size:13px;color:var(--band-2);border:1px solid var(--band-line);border-radius:999px;padding:6px 12px}
+.result{background:color-mix(in srgb,var(--band-ink) 6%,transparent);border:1px solid var(--band-line);border-radius:20px;padding:clamp(18px,2.4vw,28px)}
+.result .top-line{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.result .lbl{font-size:13px;color:var(--band-2)}
+.big{font:600 clamp(40px,6vw,64px)/1 var(--f-mono);letter-spacing:-.03em;margin-top:6px;font-variant-numeric:tabular-nums}
+.big small{font-size:.38em;color:var(--band-2);letter-spacing:0;margin-left:4px}
+.status{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px}
+.status.ok{background:var(--good-soft);color:var(--good)} .status.ko{background:var(--bad-soft);color:var(--neg)}
+.flow{margin-top:20px;display:grid;gap:10px}
+.flow .fr{display:grid;grid-template-columns:72px minmax(0,1fr) 84px;gap:10px;align-items:center;font-size:13px}
+.flow .fr>span:first-child{color:var(--band-2)}
+.flow .fr>span:last-child{text-align:right;font-family:var(--f-mono)}
+.track{height:22px;border-radius:6px;background:var(--band-line);display:flex;overflow:hidden;gap:2px}
+.track i{display:block;height:100%;transition:width .35s ease}
+.flow-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:12px;color:var(--band-2)}
+.flow-legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}
+.mini{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--band-line);border-radius:12px;padding:10px 12px;min-width:0}
+.mini:hover{border-color:var(--band-2)} .mini:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.mini .l{font-size:12px;color:var(--band-2)}
+.mini .v{font:600 18px var(--f-mono);margin-top:2px;white-space:nowrap}
+.mini .v.okc{color:#5fd39a} .mini .v.koc{color:#ff8a8a}
+@media (max-width:480px){.minis{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.minis .mini:last-child{grid-column:1/-1}}
+
+/* ---------- villes ---------- */
+.cities{padding-block:22px 6px}
+.cities h2{font:700 18px var(--f-display);margin:0 0 12px}
+.chips{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media (max-width:1100px){.chips{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.chips{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));padding-bottom:6px;scrollbar-width:none}.chip{flex:0 0 72%;scroll-snap-align:start}}
+.chip{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:border-color .15s,transform .15s}
+.chip:hover{border-color:var(--ink-3);transform:translateY(-1px)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.chip .nm{display:flex;justify-content:space-between;align-items:baseline;font:700 17px var(--f-display)}
+.chip .nm em{font:500 11px var(--f-mono);color:var(--ink-3);font-style:normal}
+.chip .kv{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3)}
+.chip .kv b{font:600 13px var(--f-mono);color:var(--ink)}
+.chip .cf{font:600 15px var(--f-mono);display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+
+/* ---------- grille réglages / détails ---------- */
+.work{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:clamp(16px,2vw,28px);align-items:start;padding-block:22px 40px}
+@media (max-width:960px){.work{grid-template-columns:minmax(0,1fr)}}
+aside.settings{display:flex;flex-direction:column;gap:12px;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow-y:auto;padding-right:4px;scrollbar-width:thin}
+@media (max-width:960px){aside.settings{position:static;max-height:none;overflow:visible;padding-right:0}}
+details.grp{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+details.grp summary{cursor:pointer;padding:16px 18px;list-style:none;display:flex;align-items:center;gap:12px}
+details.grp summary::-webkit-details-marker{display:none}
+details.grp summary .ico{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+details.grp summary .ico svg{width:18px;height:18px}
+details.grp summary .t{font:700 16px var(--f-display)}
+details.grp summary .d{font-size:12px;color:var(--ink-3)}
+details.grp summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);transition:transform .2s}
+details.grp[open] summary::after{transform:rotate(-135deg)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;padding:2px 18px 18px}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f.full,.f.slider{grid-column:1/-1}
+.f .lab{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.box{display:flex;align-items:center;background:var(--field);border:1px solid var(--line);border-radius:10px;min-height:44px}
+.box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.box input,.box select{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:500 15px var(--f-mono);padding:9px 10px;outline:none}
+.box select{font-family:var(--f-body)}
+.box .u{padding:0 10px;color:var(--ink-3);font-size:12.5px;white-space:nowrap}
+.box.ro{background:transparent;border-style:dashed}
+.slider .srow{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:12px;align-items:center}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(to right,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--panel);border:2px solid var(--accent);margin-top:-8px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.f small{color:var(--ink-3);font-size:12px}
+.chk{grid-column:1/-1;display:flex;gap:10px;align-items:center;font-size:13px;color:var(--ink-2);min-height:36px}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;font-weight:600}
+.tag.src{background:var(--good-soft);color:var(--good)}
+.tag.est{border:1px solid var(--line);color:var(--ink-3)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{all:unset;box-sizing:border-box;text-align:center;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg button:focus-visible{outline:2px solid var(--accent)}
+
+/* ---------- détails ---------- */
+.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.6vw,22px);min-width:0}
+@media (min-width:1700px){.details{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:720px){.details{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,1.6vw,22px);min-width:0}
+.card.wide{grid-column:1/-1}
+.card h3{font:700 18px var(--f-display);margin:0 0 4px}
+.card .sub{color:var(--ink-2);margin:0 0 14px;font-size:13.5px}
+.verdict{font-size:16px;line-height:1.65;margin:0}
+.verdict .i{font-family:var(--f-mono);font-weight:600}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{fill:var(--ink-3);font:11px var(--f-mono)}
+.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:8px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.rows{display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:14px}
+.rows>span:nth-child(even){font-family:var(--f-mono);text-align:right}
+.rows .tot{font-weight:600;border-top:1px solid var(--line);padding-top:8px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--ink-2);font-weight:600;vertical-align:bottom}
+td{font-family:var(--f-mono);font-size:13px}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+tr.city{cursor:pointer} tr.city:hover td{background:var(--field)}
+tr.sel td{background:var(--accent-soft)!important} tr.sel td:first-child{color:var(--accent);font-weight:600}
+td.nm{font-family:var(--f-body);font-size:14px}
+.rng{display:block;color:var(--ink-3);font-size:11px}
+.bar{display:inline-block;height:7px;border-radius:4px;vertical-align:middle;margin-right:8px}
+.ok{color:var(--good)} .ko{color:var(--neg)}
+
+/* ---------- sections bas ---------- */
+section.more{padding-block:40px;border-top:1px solid var(--line)}
+h2.sec{font:800 clamp(24px,3vw,34px)/1.1 var(--f-display);margin:0 0 8px;letter-spacing:-.01em;text-wrap:balance}
+.lead2{color:var(--ink-2);margin:0;max-width:72ch}
+.ey2{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px}
+.lex-filter{max-width:420px;margin:18px 0}
+.lex{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.lex .card h3{font-size:15.5px}
+.lex .card p{margin:6px 0 0;color:var(--ink-2);font-size:13.5px;line-height:1.6}
+.lexg{grid-column:1/-1;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px}
+.notes{columns:2 420px;column-gap:40px;color:var(--ink-2);font-size:14.5px;line-height:1.65;padding-left:18px;margin-top:18px}
+.notes li{margin:0 0 10px;break-inside:avoid}
+a{color:var(--accent)}
+footer{padding-block:28px 120px;color:var(--ink-3);font-size:12.5px;border-top:1px solid var(--line)}
+
+/* ---------- info cliquable ---------- */
+.i{all:unset;cursor:help;border-bottom:1.5px dotted currentColor;text-underline-offset:3px}
+.i:hover,.i:focus-visible{color:var(--accent);border-bottom-color:var(--accent)}
+.band .i:hover,.band .i:focus-visible{color:var(--accent-2)}
+.i:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.qi{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;font:700 10px var(--f-mono);opacity:.7}
+
+/* ---------- barre mobile ---------- */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--band);color:var(--band-ink);border-top:1px solid var(--band-line);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:none;align-items:center;gap:14px;transform:translateY(110%);transition:transform .25s}
+.dock.show{transform:none}
+.dock .dl{font-size:11px;color:var(--band-2)}
+.dock .dv{font:600 20px var(--f-mono)}
+.dock .ds{margin-left:auto}
+@media (max-width:960px){.dock{display:flex}}
+
+/* ---------- panneau explication ---------- */
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:50}
+.drawer{position:fixed;z-index:51;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
+  padding:calc(22px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) 24px;overflow-y:auto;box-shadow:-16px 0 48px rgba(0,0,0,.18)}
+@media (max-width:640px){.drawer{top:auto;left:0;width:100%;max-height:82vh;border-left:0;border-radius:20px 20px 0 0;padding-left:max(22px,env(safe-area-inset-left,0px));padding-top:30px}
+  .drawer::before{content:"";position:absolute;top:10px;left:50%;width:40px;height:4px;border-radius:2px;background:var(--line);transform:translateX(-50%)}}
+.drawer .kick{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.drawer h4{font:700 24px/1.15 var(--f-display);margin:6px 48px 14px 0}
+.drawer .body{font-size:15px;line-height:1.65;color:var(--ink-2)}
+.drawer .body p{margin:0 0 12px}
+.drawer .live{margin-top:16px;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
+.drawer .live .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.drawer .live code{font-family:var(--f-mono);font-size:13px;color:var(--ink)}
+.drawer .x{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:22px;line-height:1;cursor:pointer}
+@media (max-width:640px){.drawer .x{top:18px}}
+.tip{position:absolute;z-index:40;pointer-events:none;background:var(--ink);color:var(--bg);font:12px var(--f-mono);padding:7px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-115%)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top gut"><div class="row">
+  <a class="brand" href="#top" aria-label="Simulateur SCI Alsace">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z" fill="#e8795f"/><path d="M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z" fill="#f3c2b4"/><g fill="#16202c"><rect x="19" y="18" width="5" height="5" rx="1"/><rect x="28" y="18" width="5" height="5" rx="1"/><rect x="19" y="27" width="5" height="5" rx="1"/><rect x="28" y="27" width="5" height="5" rx="1"/><rect x="19" y="36" width="5" height="5" rx="1"/><rect x="28" y="36" width="5" height="5" rx="1"/><rect x="23" y="45" width="6" height="9" rx="1"/><rect x="41.5" y="31" width="5" height="4" rx="1"/><rect x="41.5" y="39" width="5" height="4" rx="1"/></g><rect x="10" y="53" width="44" height="3" rx="1.5" fill="#f3c2b4"/></svg>
+    <span>Simulateur <span class="long">SCI Alsace</span></span>
+  </a>
+  <nav aria-label="Sections">
+    <a href="#simuler" title="Simuler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Simuler</span></a>
+    <a href="#villes" title="Villes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>Villes</span></a>
+    <a href="#lexique" title="Lexique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span>Lexique</span></a>
+    <a href="#hypotheses" title="Hypothèses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><span>Hypothèses</span></a>
+  </nav>
+</div></header>
+
+<div id="top" class="band gut"><div class="band-grid">
+  <div>
+    <div class="eyebrow">Investissement locatif en SCI · Alsace et Moselle</div>
+    <h1>Est-ce que le loyer paie le crédit ?</h1>
+    <p class="lead">Choisis une ville et une surface : prix et loyer se calculent avec les prix au m² du marché d'octobre 2026. Ajuste l'apport, le crédit, les charges et la fiscalité, tout se met à jour en direct.</p>
+    <div class="hint"><span class="qi">i</span> Touche un chiffre ou un mot souligné pour savoir ce qu'il veut dire.</div>
+  </div>
+  <div class="result" id="result">
+    <div class="top-line">
+      <div><div class="lbl"><button class="i" data-info="cf5">Cash-flow mensuel après impôt</button> · moyenne 5 ans</div>
+        <div class="big" id="kCf"></div></div>
+      <span class="status" id="kStatus"></span>
+    </div>
+    <div class="flow" aria-label="Où va le loyer chaque mois, année 1">
+      <div class="fr"><span>Entrées</span><div class="track" id="trIn"></div><span id="vIn"></span></div>
+      <div class="fr"><span>Sorties</span><div class="track" id="trOut"></div><span id="vOut"></span></div>
+      <div class="flow-legend">
+        <span><b style="background:var(--c-loyer)"></b><button class="i" data-info="enc">Loyer</button></span>
+        <span><b style="background:var(--c-credit)"></b><button class="i" data-info="mens">Crédit</button></span>
+        <span><b style="background:var(--c-charges)"></b><button class="i" data-info="opex">Charges</button></span>
+        <span><b style="background:var(--c-impot)"></b><button class="i" data-info="tax">Impôt</button></span>
+      </div>
+    </div>
+    <div class="minis">
+      <button class="mini" data-info="mens"><div class="l">Mensualité</div><div class="v" id="kMens"></div></button>
+      <button class="mini" data-info="rdt"><div class="l">Rendement brut</div><div class="v" id="kRdt"></div></button>
+      <button class="mini" data-info="endet"><div class="l">Endettement</div><div class="v" id="kEnd"></div></button>
+    </div>
+  </div>
+</div></div>
+
+<div id="simuler" class="gut">
+  <div class="cities">
+    <h2><button class="i" data-info="city">Choisis une ville</button></h2>
+    <div class="chips" id="chips" role="group" aria-label="Villes"></div>
+  </div>
+  <div class="work">
+    <aside class="settings" id="panel" aria-label="Réglages"></aside>
+    <div class="details">
+      <div class="card wide"><h3>Autofinancement</h3><p class="verdict" id="verdict"></p></div>
+      <div class="card">
+        <h3><button class="i" data-info="chartCf">Cash-flow mensuel, année par année</button></h3>
+        <p class="sub">Sous zéro, c'est ce que tu complètes de ta poche chaque mois.</p>
+        <div class="chart" id="chCf"></div>
+        <div class="legend"><span><i style="background:var(--pos)"></i>tu encaisses</span><span><i style="background:var(--neg)"></i>tu complètes</span></div>
+      </div>
+      <div class="card">
+        <h3><button class="i" data-info="chartEq">Ce que tu possèdes</button></h3>
+        <p class="sub">Valeur du bien moins capital restant dû, fin de chaque année.</p>
+        <div class="chart" id="chEq"></div>
+      </div>
+      <div class="card"><h3>Coût d'acquisition</h3><div class="rows" id="cost"></div></div>
+      <div class="card"><h3>Bilan à 20 ans</h3><div class="rows" id="bilan"></div></div>
+      <div class="card wide">
+        <h3>Tableau sur 20 ans</h3>
+        <p class="sub">Touche un en-tête pour savoir ce que contient la colonne.</p>
+        <div class="tw"><table id="tbl"><thead><tr>
+          <th><button class="i" data-info="annee">An</button></th><th><button class="i" data-info="enc">Loyers</button></th><th><button class="i" data-info="opex">Charges</button></th><th><button class="i" data-info="intAss">Intérêts + assur.</button></th><th><button class="i" data-info="princ">Capital remb.</button></th><th><button class="i" data-info="tax">Impôt</button></th><th><button class="i" data-info="cfan">Cash-flow / an</button></th><th><button class="i" data-info="crd">Capital restant</button></th><th><button class="i" data-info="valeur">Valeur bien</button></th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="villes" class="more gut">
+  <div class="ey2">Marché · octobre 2026</div>
+  <h2 class="sec">Les six pôles côte à côte</h2>
+  <p class="lead2">Prix de vente et loyers moyens des appartements au m² d'après MeilleursAgents. Chaque ligne refait toute la simulation avec ta surface, ton financement et ta fiscalité. Touche une ville pour la charger.</p>
+  <div class="card" style="margin-top:20px;padding:6px 6px 2px"><div class="tw"><table id="cmp"><thead><tr>
+    <th><button class="i" data-info="city">Ville</button></th>
+    <th><button class="i" data-info="prixm2">Prix / m²</button></th>
+    <th><button class="i" data-info="loyerm2">Loyer / m²</button></th>
+    <th><button class="i" data-info="prix">Prix du bien</button></th>
+    <th><button class="i" data-info="loyer">Loyer / mois</button></th>
+    <th><button class="i" data-info="rdtB">Rdt brut</button></th>
+    <th><button class="i" data-info="mens">Mensualité</button></th>
+    <th><button class="i" data-info="cf5">Cash-flow / mois</button></th>
+    <th><button class="i" data-info="apportBE">Apport pour CF ≥ 0</button></th>
+    <th><button class="i" data-info="endet">Endettement</button></th>
+  </tr></thead><tbody></tbody></table></div></div>
+</section>
+
+<section id="lexique" class="more gut">
+  <div class="ey2">Comprendre</div>
+  <h2 class="sec">Lexique</h2>
+  <p class="lead2">Toutes les notions utilisées sur cette page.</p>
+  <div class="box lex-filter"><input id="lexq" type="search" placeholder="Chercher un terme : TMI, déficit, garantie…" aria-label="Chercher dans le lexique"></div>
+  <div class="lex" id="lex"></div>
+</section>
+
+<section id="hypotheses" class="more gut">
+  <div class="ey2">À savoir</div>
+  <h2 class="sec">Hypothèses et limites</h2>
+  <ul class="notes">
+    <li><b>Prix et loyers au m²</b> : moyennes MeilleursAgents au 1<sup>er</sup> octobre 2026 (septembre pour Sarrebourg), appartements tous états confondus. Un studio se loue plus cher au m² qu'un T3, un bien à rénover se vend moins cher. Vérifie sur <a href="https://app.dvf.etalab.gouv.fr/" target="_blank" rel="noopener">DVF</a> (ventes réelles) et sur les annonces du quartier.</li>
+    <li><b>Loyers</b> : la source ne dit pas s'ils sont hors charges. Ils peuvent être un peu optimistes.</li>
+    <li><b>Copropriété et taxe foncière</b> par ville : estimations, pas des données publiées. Demande les vrais montants au vendeur.</li>
+    <li><b>Associés</b> : le calcul suppose que tu portes 100 % des parts. Avec un autre associé, le résultat se partage selon les parts et chacun l'impose à sa tranche.</li>
+    <li><b>Déficit foncier</b> : report sans limite de 10 ans dans ce modèle ; l'économie d'impôt est plafonnée à l'impôt que tu paies déjà.</li>
+    <li><b>SCI à l'IS</b> : la sortie de l'argent en dividendes (flat tax de 30 %) n'est pas comptée dans les cash-flows.</li>
+    <li><b>DPE</b> : un logement classé G ne peut plus être loué depuis 2025, F à partir de 2028.</li>
+    <li>Outil de réflexion, pas un conseil fiscal personnalisé. Fais valider le montage SCI et la donation par un notaire.</li>
+  </ul>
+</section>
+
+<footer class="gut">Prix : MeilleursAgents, pages ville de <a href="https://www.meilleursagents.com/prix-immobilier/strasbourg-67000/" target="_blank" rel="noopener">Strasbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/haguenau-67500/" target="_blank" rel="noopener">Haguenau</a>, <a href="https://www.meilleursagents.com/prix-immobilier/molsheim-67120/" target="_blank" rel="noopener">Molsheim</a>, <a href="https://www.meilleursagents.com/prix-immobilier/saverne-67700/" target="_blank" rel="noopener">Saverne</a>, <a href="https://www.meilleursagents.com/prix-immobilier/phalsbourg-57370/" target="_blank" rel="noopener">Phalsbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/sarrebourg-57400/" target="_blank" rel="noopener">Sarrebourg</a>, consultées le 14 octobre 2026.</footer>
+
+<div class="dock" id="dock">
+  <div><div class="dl">Cash-flow / mois</div><div class="dv" id="dCf"></div></div>
+  <div><div class="dl">Mensualité</div><div class="dv" id="dMens" style="font-size:16px"></div></div>
+  <span class="status ds" id="dStatus"></span>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden>
+  <button class="x" id="dClose" aria-label="Fermer">×</button>
+  <div class="kick" id="dKick"></div>
+  <h4 id="dTitle"></h4>
+  <div class="body" id="dBody"></div>
+  <div class="live" id="dLive" hidden><div class="k">Avec tes chiffres</div><div id="dLiveTxt"></div></div>
+</aside>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+/* ---------- Données de marché (MeilleursAgents, oct. 2026) ---------- */
+const CITIES = {
+  strasbourg:{n:"Strasbourg",dep:"67",pm2:3740,pLo:2553,pHi:4899,lm2:15.5,lLo:11.2,lHi:25.2,date:"1er oct. 2026",cm2:30,tm2:14,
+    note:"Grande ville étudiante et européenne, demande locative très forte. Prix les plus élevés, donc rendement le plus faible."},
+  haguenau:{n:"Haguenau",dep:"67",pm2:2552,pLo:1679,pHi:3757,lm2:13.0,lLo:8.8,lHi:19.8,date:"1er oct. 2026",cm2:22,tm2:13,
+    note:"Deuxième ville du Bas-Rhin, bassin d'emploi solide, proche de Strasbourg et de l'Allemagne."},
+  molsheim:{n:"Molsheim",dep:"67",pm2:2420,pLo:1750,pHi:3398,lm2:13.4,lLo:8.1,lHi:19.7,date:"1er oct. 2026",cm2:22,tm2:12,
+    note:"Pôle industriel (Bugatti, Safran), relié à Strasbourg en TER. Loyers élevés pour des prix d'achat modérés."},
+  saverne:{n:"Saverne",dep:"67",pm2:1859,pLo:1194,pHi:3177,lm2:12.0,lLo:8.0,lHi:18.7,date:"1er oct. 2026",cm2:20,tm2:13,
+    note:"Prix d'achat bas, gare TER et TGV, demande locative correcte."},
+  phalsbourg:{n:"Phalsbourg",dep:"57",pm2:1852,pLo:1202,pHi:2586,lm2:11.2,lLo:7.5,lHi:17.3,date:"1er oct. 2026",cm2:18,tm2:11,
+    note:"Petite ville de Moselle, marché étroit : vacance locative et revente demandent plus de prudence."},
+  sarrebourg:{n:"Sarrebourg",dep:"57",pm2:1481,pLo:920,pHi:2426,lm2:11.3,lLo:7.5,lHi:18.0,date:"1er sept. 2026",cm2:18,tm2:13,
+    note:"Prix les plus bas de la sélection, rendement brut le plus élevé, mais marché moins liquide."}
+};
+const H = 20;
+let CITY = "saverne", REGIME = "ir";
+
+/* ---------- Icônes des groupes ---------- */
+const ICO = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/></svg>',
+  bank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18L12 4zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>',
+  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg>',
+  tax:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 17 15 11M9.5 11.5h.01M14.5 16.5h.01"/></svg>'
+};
+
+/* ---------- Champs ---------- */
+const GROUPS = [
+ {t:"L'essentiel",d:"Surface, prix, loyer, crédit",ico:"home",open:1,f:[
+  {id:"surface",label:"Surface",u:"m²",def:50,step:1,range:[15,150]},
+  {id:"prixm2",label:"Prix au m²",u:"€/m²",step:10,range:[800,6000],tag:"src"},
+  {id:"prix",label:"Prix d'achat",u:"€",ro:1},
+  {id:"loyer",label:"Loyer mensuel",u:"€",ro:1},
+  {id:"loyerm2",label:"Loyer au m²",u:"€/m²",step:.1,range:[5,30],tag:"src"},
+  {id:"apport",label:"Apport (donation)",u:"€",def:30000,step:1000,range:[0,150000]},
+  {id:"taux",label:"Taux du crédit",u:"%",def:3.8,step:.05,range:[1,7]},
+  {id:"duree",label:"Durée du crédit",u:"ans",def:20,step:1,range:[7,25]},
+  {id:"revenu",label:"Ton revenu net",u:"€ / mois",def:1330,step:10,range:[800,6000]}]},
+ {t:"Frais d'achat et crédit",d:"Notaire, assurance, garantie",ico:"bank",f:[
+  {id:"travaux",label:"Travaux",u:"€",def:0,step:500},
+  {id:"notaire",label:"Frais de notaire",u:"% prix",def:7.5,step:.1},
+  {id:"assur",label:"Assurance emprunteur",u:"% / an",def:.30,step:.01},
+  {id:"garantie",label:"Garantie (caution)",u:"% prêt",def:1.2,step:.1},
+  {id:"dossier",label:"Frais de dossier",u:"€",def:500,step:50},
+  {id:"creation",label:"Création SCI",u:"€",def:1500,step:100},
+  {id:"valo",label:"Revalorisation",u:"% / an",def:1,step:.1}]},
+ {t:"Location et charges",d:"Vacance, copro, taxe foncière",ico:"key",f:[
+  {id:"vacance",label:"Vacance locative",u:"mois / an",def:.5,step:.25},
+  {id:"indexation",label:"Hausse des loyers",u:"% / an",def:1.5,step:.1},
+  {id:"copro",label:"Charges de copro",u:"€ / an",step:50,tag:"est"},
+  {id:"recup",label:"Part refacturée",u:"%",def:50,step:5},
+  {id:"tf",label:"Taxe foncière",u:"€ / an",step:50,tag:"est"},
+  {id:"inflation",label:"Hausse des charges",u:"% / an",def:2,step:.1},
+  {id:"pno",label:"Assurance PNO",u:"€ / an",def:150,step:10},
+  {id:"gestion",label:"Gestion agence",u:"% loyers",def:0,step:.5},
+  {id:"gli",label:"Loyers impayés",u:"% loyers",def:0,step:.5},
+  {id:"entretien",label:"Entretien",u:"€ / an",def:300,step:50},
+  {id:"compta",label:"Compta SCI",u:"€ / an",def:400,step:50}]},
+ {t:"Fiscalité",d:"SCI à l'IR ou à l'IS",ico:"tax",f:[
+  {id:"regime",type:"seg",full:1,label:"Régime de la SCI",opts:[["ir","SCI à l'IR"],["is","SCI à l'IS"]]},
+  {id:"tmi",type:"select",label:"Ta tranche (TMI)",def:"11",opts:[["0","0 %"],["11","11 %"],["30","30 %"],["41","41 %"],["45","45 %"]],only:"ir"},
+  {id:"ps",label:"Prélèv. sociaux",u:"%",def:17.2,step:.1,only:"ir"},
+  {id:"irpaye",label:"Impôt payé hors immo",u:"€ / an",def:0,step:50,only:"ir"},
+  {id:"plafond",label:"Plafond déficit",u:"€ / an",def:10700,step:100,only:"ir"},
+  {id:"travauxded",type:"check",label:"Travaux déductibles l'année 1",def:true,only:"ir"},
+  {id:"terrain",label:"Part terrain",u:"%",def:15,step:1,only:"is"},
+  {id:"amortb",label:"Amortissement bâti",u:"ans",def:30,step:1,only:"is"},
+  {id:"isred",label:"IS taux réduit",u:"%",def:15,step:1,only:"is"},
+  {id:"isnorm",label:"IS taux normal",u:"%",def:25,step:1,only:"is"}]}
+];
+const ALL = GROUPS.flatMap(g=>g.f);
+
+/* ---------- Formats ---------- */
+const $=id=>document.getElementById(id);
+const eur=(v,d=0)=>(Math.round(v*10**d)/10**d).toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d})+" €";
+const sgn=v=>(Math.round(v)>0?"+":Math.round(v)<0?"−":"")+eur(Math.abs(v));
+const pct=v=>v.toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
+const num=(v,d=1)=>v.toLocaleString("fr-FR",{maximumFractionDigits:d});
+
+/* ---------- Explications ---------- */
+const G={mar:"Marché",bien:"Le bien",fin:"Financement",loc:"Location et charges",fis:"Fiscalité",res:"Résultats"};
+const INFO = {
+ city:{g:"mar",t:"Ville",b:"<p>Le pôle géographique où tu achètes. Choisir une ville recharge le prix au m² et le loyer au m² du marché, ainsi que les estimations de copropriété et de taxe foncière pour cette ville.</p><p>Chaque tuile montre le cash-flow mensuel que tu obtiendrais dans cette ville avec tes réglages actuels : point vert si le bien s'autofinance, rouge sinon.</p>",
+   live:p=>{const c=CITIES[p.city];return `${c.n} : ${c.note}`;}},
+ surface:{g:"bien",t:"Surface",b:"<p>Surface habitable en m² (loi Carrez en copropriété). Elle multiplie le prix au m² et le loyer au m², donc tout le reste en dépend.</p><p>Repère : 25 à 30 m² pour un studio, 40 à 50 m² pour un T2, 60 à 70 m² pour un T3.</p>"},
+ prixm2:{g:"mar",t:"Prix au m²",b:"<p>Prix moyen de vente des appartements dans la ville, hors frais de notaire, selon MeilleursAgents. La moyenne mélange tous les quartiers et tous les états : un bien à rénover se trouve souvent dans la fourchette basse.</p><p>Tu peux le modifier pour coller à une annonce précise. Le prix d'achat se recalcule tout seul.</p>",
+   live:p=>{const c=CITIES[p.city];return `${c.n} au ${c.date} : moyenne <b>${num(c.pm2,0)} €/m²</b>, fourchette ${num(c.pLo,0)} à ${num(c.pHi,0)} €/m² (95 % des biens).`;}},
+ prix:{g:"bien",t:"Prix d'achat",b:"<p>Prix payé au vendeur, hors frais de notaire. Il est calculé automatiquement à partir de la surface et du prix au m².</p>",
+   live:p=>`<code>${p.surface} m² × ${num(p.prixm2,0)} €/m² = ${eur(p.prix)}</code>`},
+ travaux:{g:"bien",t:"Travaux",b:"<p>Montant des travaux faits à l'achat, ajouté au coût total et financé par l'apport ou le crédit.</p><p>À l'IR, les travaux d'entretien, de réparation et d'amélioration sont déductibles des loyers (pas l'agrandissement). À l'IS, ils sont amortis sur 15 ans.</p>"},
+ notaire:{g:"bien",t:"Frais de notaire",b:"<p>Taxes et émoluments payés au notaire à l'achat : environ 7 à 8 % du prix dans l'ancien, 2 à 3 % dans le neuf. L'essentiel part en droits de mutation pour l'État et le département.</p><p>À l'IR ils ne sont pas déductibles des loyers. À l'IS ils passent en charge la première année.</p>",
+   live:(p,s)=>`<code>${eur(p.prix)} × ${num(p.notaire)} % = ${eur(s.notaire)}</code>`},
+ valo:{g:"bien",t:"Revalorisation du bien",b:"<p>Hausse annuelle moyenne supposée de la valeur du bien, pour estimer sa valeur dans 20 ans. 1 à 2 % par an est une hypothèse prudente ; les prix peuvent aussi baisser plusieurs années de suite.</p>",
+   live:(p,s)=>`Valeur dans ${H} ans : <code>${eur(p.prix)} × (1 + ${num(p.valo)} %)^${H} = ${eur(s.years[H-1].val)}</code>`},
+ apport:{g:"fin",t:"Apport",b:"<p>Argent que tu mets toi-même dans l'opération, ici la donation de ta mère. Il réduit le montant emprunté, donc la mensualité. Les banques demandent en général qu'il couvre au moins les frais de notaire et de garantie.</p>"},
+ taux:{g:"fin",t:"Taux du crédit",b:"<p>Taux d'intérêt nominal, hors assurance et frais. C'est lui qui fixe la mensualité. Pour comparer deux offres, regarde plutôt le TAEG, qui inclut assurance, garantie et frais.</p>"},
+ duree:{g:"fin",t:"Durée du crédit",b:"<p>Nombre d'années de remboursement, 25 ans maximum en général. Plus long : mensualité plus basse et meilleur cash-flow, mais plus d'intérêts au total.</p>"},
+ assur:{g:"fin",t:"Assurance emprunteur",b:"<p>Assurance décès-invalidité exigée par la banque, en % du capital emprunté par an. Pour un jeune non-fumeur, 0,10 à 0,30 % via une délégation externe. Tu peux en changer à tout moment (loi Lemoine).</p>",
+   live:(p,s)=>`<code>${eur(s.loan)} × ${num(p.assur,2)} % ÷ 12 = ${eur(s.assM,2)} / mois</code>`},
+ garantie:{g:"fin",t:"Garantie",b:"<p>Ce qui protège la banque si tu ne rembourses plus : une caution (Crédit Logement, souvent 1 à 1,5 % du prêt, en partie restituée à la fin) ou une hypothèque. Elle s'ajoute au coût d'achat.</p>",
+   live:(p,s)=>`<code>${eur(s.loan)} × ${num(p.garantie)} % = ${eur(s.garantie)}</code>`},
+ dossier:{g:"fin",t:"Frais de dossier",b:"<p>Frais facturés par la banque pour monter le prêt, souvent 500 à 1 000 €, négociables. Déductibles des loyers la première année à l'IR.</p>"},
+ creation:{g:"fin",t:"Création de la SCI",b:"<p>Rédaction des statuts (en ligne ou par un notaire), annonce légale et immatriculation : de 300 € en ligne à 2 000 € chez un notaire.</p>"},
+ revenu:{g:"fin",t:"Ton revenu net",b:"<p>Ton salaire net mensuel avant impôt. La banque s'en sert pour calculer ton taux d'endettement.</p>"},
+ loyerm2:{g:"mar",t:"Loyer au m²",b:"<p>Loyer mensuel moyen au m² des appartements dans la ville, selon MeilleursAgents. La source ne dit pas si les charges sont incluses : retire 1 à 2 €/m² pour un loyer strictement hors charges. Les petites surfaces se louent plus cher au m².</p>",
+   live:p=>{const c=CITIES[p.city];return `${c.n} au ${c.date} : moyenne <b>${num(c.lm2)} €/m²</b>, fourchette ${num(c.lLo)} à ${num(c.lHi)} €/m².`;}},
+ loyer:{g:"loc",t:"Loyer mensuel",b:"<p>Loyer que paie le locataire chaque mois, calculé à partir de la surface et du loyer au m².</p>",
+   live:p=>`<code>${p.surface} m² × ${num(p.loyerm2)} €/m² = ${eur(p.loyer)} / mois</code>`},
+ vacance:{g:"loc",t:"Vacance locative",b:"<p>Nombre moyen de mois par an où le logement est vide. 0,5 mois par an correspond à un changement de locataire tous les deux ans avec un mois de vide. Pendant la vacance, tu paies seul toutes les charges.</p>"},
+ indexation:{g:"loc",t:"Hausse des loyers",b:"<p>Augmentation annuelle du loyer, limitée par l'indice de référence des loyers (IRL). Possible seulement si le bail le prévoit, et interdite pour les logements classés F ou G.</p>"},
+ inflation:{g:"loc",t:"Hausse des charges",b:"<p>Augmentation annuelle supposée de la copro, de la taxe foncière, de l'assurance et de l'entretien. La taxe foncière a souvent augmenté plus vite que l'inflation ces dernières années.</p>"},
+ copro:{g:"loc",t:"Charges de copropriété",b:"<p>Total annuel des appels de charges du syndic (parties communes, chauffage collectif, ascenseur, assurance de l'immeuble). Valeur par défaut : estimation au m² pour la ville, à remplacer par le montant de l'annonce.</p>"},
+ recup:{g:"loc",t:"Part refacturée au locataire",b:"<p>Une partie des charges de copro est récupérable : tu la refactures au locataire en plus du loyer (eau, entretien courant, ménage). Souvent 40 à 70 %. Le reste (gros travaux, honoraires du syndic) reste pour toi.</p>"},
+ tf:{g:"loc",t:"Taxe foncière",b:"<p>Impôt local annuel payé par le propriétaire. Valeur par défaut : estimation pour la ville. Le vrai montant figure sur l'avis du vendeur.</p>"},
+ pno:{g:"loc",t:"Assurance propriétaire non occupant",b:"<p>Assurance du propriétaire bailleur (dégâts des eaux, responsabilité civile), en complément de celle du locataire. Obligatoire en copropriété, 100 à 200 € par an.</p>"},
+ gestion:{g:"loc",t:"Gestion par une agence",b:"<p>Pourcentage des loyers prélevé par une agence pour gérer à ta place. 6 à 8 % TTC en général, 0 % si tu gères toi-même.</p>"},
+ gli:{g:"loc",t:"Assurance loyers impayés",b:"<p>Rembourse les loyers si le locataire ne paie plus. Environ 2,5 à 3,5 % des loyers. Alternative gratuite : la garantie Visale d'Action Logement pour certains locataires.</p>"},
+ entretien:{g:"loc",t:"Entretien courant",b:"<p>Budget annuel pour les petites réparations à ta charge (chaudière, électroménager, peinture entre deux locataires). Compte au moins 1 % de la valeur du bien sur le long terme.</p>"},
+ compta:{g:"loc",t:"Compta et banque de la SCI",b:"<p>Une SCI doit avoir un compte bancaire, tenir une comptabilité et faire une déclaration chaque année (formulaire 2072 à l'IR). Faisable soi-même à l'IR ; un expert-comptable est quasi indispensable à l'IS (800 à 1 500 € par an).</p>"},
+ regime:{g:"fis",t:"Régime fiscal de la SCI",b:"<p><b>À l'IR</b> : la SCI est transparente, chaque associé déclare sa part des loyers en revenus fonciers. Location nue obligatoire. À la revente, plus-value des particuliers, exonérée d'impôt après 22 ans et de prélèvements sociaux après 30 ans.</p><p><b>À l'IS</b> : la SCI paie l'impôt sur les sociétés et amortit le bien, ce qui efface souvent l'impôt pendant des années. En contrepartie, la plus-value à la revente est lourde et sortir l'argent coûte 30 %. Choix difficilement réversible.</p>"},
+ tmi:{g:"fis",t:"Tranche marginale d'imposition",b:"<p>Taux d'impôt appliqué au dernier euro que tu gagnes. Les revenus fonciers s'ajoutent à ton salaire et sont taxés à ce taux, plus les prélèvements sociaux.</p><p>Repère : un célibataire à 1 330 € nets par mois est dans la tranche à 11 % mais paie souvent 0 € d'impôt grâce à la décote.</p>"},
+ ps:{g:"fis",t:"Prélèvements sociaux",b:"<p>CSG et CRDS prélevées sur les revenus fonciers positifs, 17,2 %, en plus de l'impôt sur le revenu.</p>"},
+ irpaye:{g:"fis",t:"Impôt payé hors immobilier",b:"<p>L'impôt sur le revenu que tu paies déjà sur ton salaire. Un déficit foncier ne fait économiser que de l'impôt existant : si tu ne paies rien, il ne te rapporte rien cette année-là.</p>"},
+ plafond:{g:"fis",t:"Déficit foncier",b:"<p>Si les charges dépassent les loyers, il y a un déficit. La part qui ne vient pas des intérêts d'emprunt se déduit de ton revenu global jusqu'à 10 700 € par an. Le reste se reporte sur les revenus fonciers des 10 années suivantes. Il faut ensuite louer jusqu'au 31 décembre de la 3<sup>e</sup> année.</p>"},
+ travauxded:{g:"fis",t:"Travaux déductibles",b:"<p>Coché : les travaux sont de l'entretien ou de l'amélioration, déduits des loyers la première année. Décoché : construction ou agrandissement, non déductibles.</p>"},
+ terrain:{g:"fis",t:"Part du terrain",b:"<p>À l'IS, seul le bâtiment s'amortit, pas le terrain. On retient souvent 10 à 20 % du prix pour le terrain en appartement.</p>"},
+ amortb:{g:"fis",t:"Amortissement",b:"<p>À l'IS, la SCI déduit chaque année une fraction du prix du bâtiment, comme s'il s'usait : sur 30 ans, 1/30 par an. C'est une charge comptable, pas une dépense réelle, qui réduit le bénéfice imposable.</p>",
+   live:p=>`<code>${eur(p.prix)} × ${100-p.terrain} % ÷ ${p.amortb} ans = ${eur(p.prix*(1-p.terrain/100)/p.amortb)} / an</code>`},
+ isred:{g:"fis",t:"IS, taux réduit",b:"<p>15 % sur les 42 500 premiers euros de bénéfice, si la SCI remplit les conditions (capital entièrement libéré, détenue à 75 % par des personnes physiques).</p>"},
+ isnorm:{g:"fis",t:"IS, taux normal",b:"<p>25 % sur le bénéfice au-delà de 42 500 €.</p>"},
+ cf5:{g:"res",t:"Cash-flow mensuel après impôt",b:"<p>Ce qui reste (ou ce qu'il manque) chaque mois une fois tout payé : loyers encaissés moins mensualité, assurance, charges et impôt. Négatif : c'est ton effort d'épargne, l'argent que tu ajoutes de ta poche. Moyenne des 5 premières années pour lisser la première.</p><p>Les deux barres du bandeau montrent l'année 1 : ce qui entre (le loyer) et ce qui sort (crédit, charges, impôt).</p>",
+   live:(p,s)=>{const y=s.years[0];return `Année 1 : <code>${eur(y.enc)} loyers − ${eur(y.opex)} charges − ${eur(y.intAss+y.princ)} crédit − ${eur(Math.max(0,y.tax))} impôt = ${sgn(y.cf)}</code>, soit ${sgn(y.cf/12)} par mois. Moyenne sur 5 ans : <b>${sgn(s.cf5)} / mois</b>.`;}},
+ mens:{g:"res",t:"Mensualité",b:"<p>Ce que tu rembourses à la banque chaque mois : intérêts + capital, plus l'assurance emprunteur. Fixe pendant toute la durée du prêt.</p>",
+   live:(p,s)=>`Prêt de ${eur(s.loan)} à ${num(p.taux,2)} % sur ${p.duree} ans : <code>${eur(s.mens,2)} + ${eur(s.assM,2)} d'assurance = ${eur(s.mens+s.assM,2)}</code>`},
+ rdt:{g:"res",t:"Rendement brut et net",b:"<p><b>Brut</b> : loyers annuels ÷ coût total d'achat. Sert à comparer vite deux biens. En dessous de 5 %, l'autofinancement est difficile avec les taux actuels.</p><p><b>Net</b> : loyers réellement encaissés moins charges ÷ coût total, avant crédit et impôt.</p>",
+   live:(p,s)=>`<code>${eur(p.loyer*12)} ÷ ${eur(s.coutTotal)} = ${pct(s.rdtB)}</code> brut ; <code>(${eur(s.years[0].enc)} − ${eur(s.years[0].opex)}) ÷ ${eur(s.coutTotal)} = ${pct(s.rdtN)}</code> net.`},
+ rdtB:{g:"res",t:"Rendement brut",b:"<p>Loyers annuels divisés par le coût total d'achat (prix, notaire, frais). En dessous de 5 %, l'autofinancement est difficile avec les taux actuels.</p>"},
+ endet:{g:"res",t:"Taux d'endettement",b:"<p>Part de tes revenus consacrée aux crédits. Les banques comptent en général 70 % du futur loyer comme un revenu. Le plafond HCSF est de 35 % assurance comprise.</p>",
+   live:(p,s)=>`<code>${eur(s.mens+s.assM)} ÷ (${eur(p.revenu)} + 70 % × ${eur(p.loyer)}) = ${pct(s.endet)}</code>`},
+ apportBE:{g:"res",t:"Apport pour l'autofinancement",b:"<p>Apport minimum pour que le cash-flow moyen des 5 premières années soit nul ou positif, toutes autres hypothèses égales.</p>"},
+ loyerBE:{g:"res",t:"Loyer d'équilibre",b:"<p>Loyer mensuel minimum pour que le bien s'autofinance avec ton apport actuel.</p>"},
+ enrich:{g:"res",t:"Enrichissement net à 20 ans",b:"<p>Ce que l'opération t'a rapporté au bout de 20 ans si tu revends : valeur du bien − capital restant dû − impôt sur la plus-value + somme des cash-flows (négatifs s'il a fallu compléter) − apport de départ.</p>",
+   live:(p,s)=>{const l=s.years[H-1];return `<code>${eur(l.val)} − ${eur(l.crd)} − ${eur(s.taxPV)} ${s.cum<0?"−":"+"} ${eur(Math.abs(s.cum))} − ${eur(p.apport)} = ${sgn(s.enrich)}</code>`;}},
+ coutTotal:{g:"res",t:"Coût total d'acquisition",b:"<p>Tout ce qu'il faut payer pour acheter : prix, notaire, travaux, création de la SCI, frais de dossier et garantie.</p>"},
+ loan:{g:"res",t:"Montant emprunté",b:"<p>Coût total moins apport. La garantie étant elle-même un pourcentage du prêt, le calcul l'intègre.</p>"},
+ interets:{g:"res",t:"Coût du crédit",b:"<p>Total des intérêts et de l'assurance payés sur la durée. C'est le prix de l'argent emprunté.</p>"},
+ taxPV:{g:"res",t:"Impôt sur la plus-value",b:"<p>Impôt dû si tu revends plus cher que tu as acheté.</p><p>À l'IR après 20 ans : abattement de 90 % sur l'impôt (19 %) et de 24,75 % sur les prélèvements sociaux (17,2 %) ; on ajoute au prix d'achat un forfait de 7,5 % pour les frais et de 15 % pour les travaux.</p><p>À l'IS : plus-value calculée sur la valeur après amortissements, beaucoup plus lourde.</p>"},
+ cum:{g:"res",t:"Cash-flows cumulés",b:"<p>Somme de tous les cash-flows annuels sur 20 ans. Négatif : total de ce que tu as ajouté de ta poche.</p>"},
+ chartCf:{g:"res",t:"Graphique du cash-flow",b:"<p>Chaque barre est le cash-flow mensuel moyen d'une année. Il s'améliore avec le temps parce que les loyers montent alors que la mensualité reste fixe, et bondit à la fin du crédit.</p>"},
+ chartEq:{g:"res",t:"Graphique du patrimoine",b:"<p>La part du bien qui t'appartient vraiment : valeur estimée moins ce que tu dois encore à la banque. Elle grandit avec le remboursement du capital et la revalorisation.</p>"},
+ annee:{g:"res",t:"Année",b:"<p>Année de détention, de 1 à 20, à partir de l'achat.</p>"},
+ enc:{g:"res",t:"Loyers encaissés",b:"<p>Loyers de l'année hors charges, après déduction des mois de vacance et avec la hausse annuelle.</p>"},
+ opex:{g:"res",t:"Charges",b:"<p>Dépenses du propriétaire hors crédit : copro non refacturée, taxe foncière, assurance PNO, gestion, loyers impayés, entretien, compta de la SCI.</p>"},
+ intAss:{g:"res",t:"Intérêts et assurance",b:"<p>Partie de la mensualité qui rémunère la banque et l'assureur. Forte au début du crédit, elle diminue ensuite. Déductible des loyers.</p>"},
+ princ:{g:"res",t:"Capital remboursé",b:"<p>Partie de la mensualité qui rembourse réellement la dette. C'est de l'épargne forcée : elle sort de ta poche mais augmente ton patrimoine.</p>"},
+ tax:{g:"res",t:"Impôt",b:"<p>À l'IR : impôt sur le revenu et prélèvements sociaux sur le revenu foncier de l'année, ou économie d'impôt en cas de déficit. À l'IS : impôt payé par la SCI.</p>"},
+ cfan:{g:"res",t:"Cash-flow annuel",b:"<p>Loyers encaissés − charges − mensualités − impôt sur l'année.</p>"},
+ crd:{g:"res",t:"Capital restant dû",b:"<p>Ce que tu dois encore à la banque en fin d'année. C'est le montant à rembourser si tu revends.</p>"},
+ valeur:{g:"res",t:"Valeur du bien",b:"<p>Valeur estimée du bien en fin d'année avec la revalorisation choisie.</p>"}
+};
+
+/* ---------- Formulaire ---------- */
+const panel=$("panel");
+GROUPS.forEach(g=>{
+  const d=document.createElement("details"); d.className="grp"; d.open=!!g.open;
+  let h=`<summary><span class="ico">${ICO[g.ico]}</span><span><span class="t">${g.t}</span><br><span class="d">${g.d}</span></span></summary><div class="fields">`;
+  for(const f of g.f){
+    const tag=f.tag==="src"?`<span class="tag src">marché</span>`:f.tag==="est"?`<span class="tag est">estim.</span>`:"";
+    const lab=`<span class="lab"><button class="i" data-info="${f.id}" type="button">${f.label}</button>${tag}</span>`;
+    const only=f.only?` only-${f.only}`:"";
+    if(f.type==="check"){ h+=`<label class="chk${only}"><input id="${f.id}" type="checkbox"><button class="i" data-info="${f.id}" type="button">${f.label}</button></label>`; continue; }
+    if(f.type==="seg"){ h+=`<div class="f full">${lab}<div class="seg" role="group">${f.opts.map(([v,t])=>`<button type="button" data-reg="${v}" aria-pressed="false">${t}</button>`).join("")}</div></div>`; continue; }
+    if(f.type==="select"){ h+=`<div class="f${only}">${lab}<div class="box"><select id="${f.id}">${f.opts.map(([v,t])=>`<option value="${v}">${t}</option>`).join("")}</select></div></div>`; continue; }
+    if(f.ro){ h+=`<div class="f${only}">${lab}<div class="box ro"><input id="${f.id}" type="text" readonly tabindex="-1"><span class="u">${f.u}</span></div></div>`; continue; }
+    const box=`<div class="box"><input id="${f.id}" type="number" step="${f.step}" inputmode="decimal"><span class="u">${f.u}</span></div>`;
+    if(f.range){ h+=`<div class="f slider${only}">${lab}<div class="srow"><input type="range" id="${f.id}_r" min="${f.range[0]}" max="${f.range[1]}" step="${f.step}" aria-label="${f.label}">${box}</div></div>`; continue; }
+    h+=`<div class="f${only}">${lab}${box}</div>`;
+  }
+  d.innerHTML=h+"</div>"; panel.appendChild(d);
+});
+for(const f of ALL){ if(f.def===undefined) continue; const el=$(f.id); if(!el) continue; if(f.type==="check") el.checked=f.def; else el.value=f.def; }
+const fillRange=r=>{ const p=(r.value-r.min)/(r.max-r.min)*100; r.style.setProperty("--p",Math.max(0,Math.min(100,p))+"%"); };
+function syncRanges(){ ALL.filter(f=>f.range).forEach(f=>{ const r=$(f.id+"_r"); r.value=$(f.id).value; fillRange(r); }); }
+
+function loadCity(){ const c=CITIES[CITY], s=+$("surface").value||50;
+  $("prixm2").value=c.pm2; $("loyerm2").value=c.lm2;
+  $("copro").value=Math.round(c.cm2*s/10)*10; $("tf").value=Math.round(c.tm2*s/10)*10; }
+function read(){ const p={city:CITY,regime:REGIME};
+  for(const f of ALL){ const el=$(f.id); if(!el||f.ro) continue; p[f.id]=f.type==="check"?el.checked:f.type==="select"?el.value:(parseFloat(el.value)||0); }
+  p.tmi=+p.tmi; p.prix=Math.round(p.surface*p.prixm2); p.loyer=Math.round(p.surface*p.loyerm2); return p; }
+
+/* ---------- Calcul ---------- */
+function sim(p){
+  const notaire=p.prix*p.notaire/100;
+  const besoin0=p.prix+notaire+p.travaux+p.creation+p.dossier;
+  const g=p.garantie/100;
+  const loan=Math.max(0,(besoin0-p.apport)/(1-g)), garantie=loan*g;
+  const r=p.taux/100/12, n=Math.max(1,Math.round(p.duree*12));
+  const mens=loan<=0?0:(r===0?loan/n:loan*r/(1-Math.pow(1+r,-n)));
+  const assM=loan*p.assur/100/12;
+  let crd=loan, cfIR=0, cfIS=0, amortCum=0; const years=[];
+  for(let y=1;y<=H;y++){
+    const f=Math.pow(1+p.inflation/100,y-1), fi=Math.pow(1+p.indexation/100,y-1);
+    const vac=Math.min(12,Math.max(0,p.vacance));
+    const enc=p.loyer*12*fi*(12-vac)/12, rc=p.recup/100;
+    const opex=p.copro*f*((1-rc)+rc*vac/12)+p.tf*f+p.pno*f+enc*(p.gestion+p.gli)/100+p.entretien*f+p.compta*f;
+    let interest=0,princ=0,ass=0;
+    for(let m=(y-1)*12;m<y*12;m++){ if(m<n&&crd>1e-6){ const i=crd*r, pr=Math.min(crd,mens-i); interest+=i; princ+=pr; crd-=pr; ass+=assM; } }
+    const cfAvant=enc-opex-interest-princ-ass;
+    let tax=0;
+    if(p.regime==="ir"){
+      const intCat=interest+ass+(y===1?garantie+p.dossier:0), other=opex+(y===1&&p.travauxded?p.travaux:0);
+      const res=enc-intCat-other;
+      if(res>=0){ const use=Math.min(res,cfIR); cfIR-=use; tax=(res-use)*(p.tmi+p.ps)/100; }
+      else { let defOther; if(enc>=intCat) defOther=intCat+other-enc; else { cfIR+=intCat-enc; defOther=other; }
+        const imput=Math.min(defOther,p.plafond); cfIR+=defOther-imput; tax=-Math.min(imput*p.tmi/100,p.irpaye); }
+    } else {
+      const amB=y<=p.amortb?p.prix*(1-p.terrain/100)/p.amortb:0, amT=y<=15?p.travaux/15:0; amortCum+=amB+amT;
+      const res=enc-opex-interest-ass-amB-amT-(y===1?notaire+garantie+p.dossier+p.creation:0);
+      if(res<0) cfIS+=-res; else { const use=Math.min(res,cfIS); cfIS-=use; const t=res-use; tax=Math.min(t,42500)*p.isred/100+Math.max(0,t-42500)*p.isnorm/100; }
+    }
+    years.push({y,enc,opex,intAss:interest+ass,princ,tax,cf:cfAvant-tax,crd:Math.max(0,crd),val:p.prix*Math.pow(1+p.valo/100,y)});
+  }
+  const last=years[H-1]; let taxPV=0;
+  if(p.regime==="ir"){ const pv=last.val-p.prix*1.225; if(pv>0) taxPV=pv*.10*.19+pv*(1-.2475)*p.ps/100; }
+  else { const pv=last.val-(p.prix+p.travaux-amortCum); if(pv>0) taxPV=Math.min(pv,42500)*p.isred/100+Math.max(0,pv-42500)*p.isnorm/100; }
+  const cum=years.reduce((a,x)=>a+x.cf,0), cf5=years.slice(0,5).reduce((a,x)=>a+x.cf,0)/60;
+  const coutTotal=besoin0+garantie;
+  return {notaire,besoin0,loan,garantie,mens,assM,years,taxPV,cum,cf5,coutTotal,
+    endet:(mens+assM)/(p.revenu+.7*p.loyer)*100, rdtB:p.loyer*12/coutTotal*100, rdtN:(years[0].enc-years[0].opex)/coutTotal*100,
+    interets:years.reduce((a,x)=>a+x.intAss,0), enrich:last.val-last.crd-taxPV+cum-p.apport};
+}
+function solve(p,key,lo,hi){ const f=v=>sim({...p,[key]:v}).cf5;
+  if(f(lo)>=0) return lo; if(f(hi)<0) return null;
+  for(let i=0;i<40;i++){ const m=(lo+hi)/2; if(f(m)>=0) hi=m; else lo=m; } return hi; }
+function cityParams(p,k){ const c=CITIES[k]; return {...p,city:k,prixm2:c.pm2,loyerm2:c.lm2,prix:Math.round(p.surface*c.pm2),loyer:Math.round(p.surface*c.lm2),
+  copro:Math.round(c.cm2*p.surface/10)*10,tf:Math.round(c.tm2*p.surface/10)*10}; }
+
+/* ---------- Panneau d'explication ---------- */
+let P,S,openKey=null,lastFocus=null; const drawer=$("drawer"), scrim=$("scrim");
+function openInfo(k){ const it=INFO[k]; if(!it) return; openKey=k; lastFocus=document.activeElement;
+  $("dKick").textContent=G[it.g]||""; $("dTitle").textContent=it.t; $("dBody").innerHTML=it.b; fillLive();
+  drawer.hidden=false; scrim.hidden=false; $("dClose").focus(); }
+function fillLive(){ if(!openKey) return; const it=INFO[openKey]; if(it.live){ $("dLiveTxt").innerHTML=it.live(P,S); $("dLive").hidden=false; } else $("dLive").hidden=true; }
+function closeInfo(){ drawer.hidden=true; scrim.hidden=true; openKey=null; if(lastFocus&&lastFocus.focus) lastFocus.focus(); }
+document.addEventListener("click",e=>{ const t=e.target.closest("[data-info]"); if(t){ e.preventDefault(); e.stopPropagation(); openInfo(t.dataset.info); } },true);
+scrim.addEventListener("click",closeInfo); $("dClose").addEventListener("click",closeInfo);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!drawer.hidden) closeInfo(); });
+const I=(k,txt)=>`<button class="i" data-info="${k}">${txt}</button>`;
+
+/* ---------- Graphiques ---------- */
+const tip=$("tip");
+function showTip(e,html){ tip.innerHTML=html; tip.hidden=false; tip.style.left=e.pageX+"px"; tip.style.top=(e.pageY-8)+"px"; }
+function hideTip(){ tip.hidden=true; }
+function niceTicks(min,max,count=4){ const span=max-min||1, mag=Math.pow(10,Math.floor(Math.log10(span/count)));
+  const step=[1,2,2.5,5,10].map(x=>x*mag).find(x=>span/x<=count)||mag*10; const t=[];
+  for(let v=Math.floor(min/step)*step; v<=max+1e-9; v+=step) t.push(Math.round(v*100)/100); if(t[t.length-1]<max) t.push(t[t.length-1]+step); return t; }
+const kf=v=>Math.abs(v)>=1000?(v/1000).toLocaleString("fr-FR",{maximumFractionDigits:0})+" k":Math.round(v).toLocaleString("fr-FR");
+function barChart(el,vals){ const W=560,Hh=240,L=46,R=8,T=10,B=24;
+  const ticks=niceTicks(Math.min(0,...vals),Math.max(0,...vals)); const mn=ticks[0], mx=ticks[ticks.length-1];
+  const ys=v=>T+(mx-v)/(mx-mn||1)*(Hh-T-B), bw=(W-L-R)/vals.length;
+  let s=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Cash-flow mensuel par année">`;
+  for(const t of ticks) s+=`<line x1="${L}" x2="${W-R}" y1="${ys(t)}" y2="${ys(t)}" stroke="var(--line)" ${t===0?'stroke-width="1.5"':'stroke-dasharray="2 3"'}/><text x="${L-6}" y="${ys(t)+4}" text-anchor="end">${kf(t)}</text>`;
+  vals.forEach((v,i)=>{ const y0=ys(0),y1=ys(v); s+=`<rect x="${L+i*bw+2}" y="${Math.min(y0,y1)}" width="${Math.max(2,bw-4)}" height="${Math.max(1,Math.abs(y1-y0))}" rx="3" fill="${v>=0?"var(--pos)":"var(--neg)"}"/><rect class="hit" data-i="${i}" x="${L+i*bw}" y="${T}" width="${bw}" height="${Hh-T-B}" fill="transparent"/>`;
+    if(i%2===0) s+=`<text x="${L+i*bw+bw/2}" y="${Hh-6}" text-anchor="middle">${i+1}</text>`; });
+  el.innerHTML=s+"</svg>";
+  el.querySelectorAll(".hit").forEach(r=>{ const f=e=>{const i=+r.dataset.i; showTip(e,`Année ${i+1}<br>${sgn(vals[i])} / mois`);}; r.addEventListener("mousemove",f); r.addEventListener("click",f); r.addEventListener("mouseleave",hideTip); }); }
+function lineChart(el,vals){ const W=560,Hh=240,L=46,R=12,T=10,B=24;
+  const ticks=niceTicks(Math.min(0,...vals),Math.max(1,...vals)); const mn=ticks[0], mx=ticks[ticks.length-1], li=vals.length-1;
+  const xs=i=>L+i*(W-L-R)/li, ys=v=>T+(mx-v)/(mx-mn||1)*(Hh-T-B);
+  let s=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Valeur du bien moins capital restant dû">`;
+  for(const t of ticks) s+=`<line x1="${L}" x2="${W-R}" y1="${ys(t)}" y2="${ys(t)}" stroke="var(--line)" ${t===0?'':'stroke-dasharray="2 3"'}/><text x="${L-6}" y="${ys(t)+4}" text-anchor="end">${kf(t)}</text>`;
+  const pts=vals.map((v,i)=>`${xs(i)},${ys(v)}`).join(" "), b0=ys(Math.max(mn,0));
+  s+=`<polygon points="${xs(0)},${b0} ${pts} ${xs(li)},${b0}" fill="var(--pos)" opacity=".14"/><polyline points="${pts}" fill="none" stroke="var(--pos)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  s+=`<circle cx="${xs(li)}" cy="${ys(vals[li])}" r="5" fill="var(--pos)" stroke="var(--panel)" stroke-width="2"/>`;
+  vals.forEach((v,i)=>{ if(i%2===0) s+=`<text x="${xs(i)}" y="${Hh-6}" text-anchor="middle">${i+1}</text>`; });
+  s+=`<line class="xh" x1="0" x2="0" y1="${T}" y2="${Hh-B}" stroke="var(--ink-3)" visibility="hidden"/><circle class="xd" r="4.5" fill="var(--pos)" stroke="var(--panel)" stroke-width="2" visibility="hidden"/><rect class="hit" x="${L}" y="${T}" width="${W-L-R}" height="${Hh-T-B}" fill="transparent"/></svg>`;
+  el.innerHTML=s; const svg=el.querySelector("svg"),hit=el.querySelector(".hit"),xh=el.querySelector(".xh"),xd=el.querySelector(".xd");
+  const mv=e=>{ const b=svg.getBoundingClientRect(), x=(e.clientX-b.left)*W/b.width, i=Math.max(0,Math.min(li,Math.round((x-L)/((W-L-R)/li))));
+    xh.setAttribute("x1",xs(i)); xh.setAttribute("x2",xs(i)); xh.setAttribute("visibility","visible"); xd.setAttribute("cx",xs(i)); xd.setAttribute("cy",ys(vals[i])); xd.setAttribute("visibility","visible");
+    showTip(e,`Fin d'année ${i+1}<br>${eur(vals[i])}`); };
+  hit.addEventListener("mousemove",mv); hit.addEventListener("click",mv);
+  hit.addEventListener("mouseleave",()=>{hideTip(); xh.setAttribute("visibility","hidden"); xd.setAttribute("visibility","hidden");}); }
+
+/* ---------- Rendu ---------- */
+function statusHtml(cf){ return cf>=0?`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg> S'autofinance`:`Effort de ${eur(-cf)} / mois`; }
+function render(){
+  const p=read(), s=sim(p); P=p; S=s;
+  $("prix").value=eur(p.prix).replace(" €",""); $("loyer").value=eur(p.loyer).replace(" €","");
+  document.querySelectorAll(".only-ir").forEach(e=>e.hidden=p.regime!=="ir");
+  document.querySelectorAll(".only-is").forEach(e=>e.hidden=p.regime!=="is");
+  document.querySelectorAll("[data-reg]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===p.regime));
+  syncRanges();
+
+  // Bandeau
+  $("kCf").innerHTML=`${sgn(s.cf5)}<small>/ mois</small>`;
+  const st=$("kStatus"); st.className="status "+(s.cf5>=0?"ok":"ko"); st.innerHTML=statusHtml(s.cf5);
+  const y1=s.years[0], inM=y1.enc/12, cr=(y1.intAss+y1.princ)/12, ch=y1.opex/12, im=Math.max(0,y1.tax)/12, out=cr+ch+im, mx=Math.max(inM,out,1);
+  $("trIn").innerHTML=`<i style="width:${inM/mx*100}%;background:var(--c-loyer)"></i>`;
+  $("trOut").innerHTML=[[cr,"--c-credit"],[ch,"--c-charges"],[im,"--c-impot"]].filter(x=>x[0]>0.5).map(([v,c])=>`<i style="width:calc(${v/mx*100}% - 2px);background:var(${c})"></i>`).join("");
+  $("vIn").textContent=eur(inM); $("vOut").textContent=eur(out);
+  $("kMens").textContent=eur(s.mens+s.assM);
+  $("kRdt").textContent=pct(s.rdtB);
+  const ke=$("kEnd"); ke.textContent=pct(s.endet); ke.className="v "+(s.endet<=35?"okc":"koc");
+  $("dCf").textContent=sgn(s.cf5); $("dMens").textContent=eur(s.mens+s.assM);
+  const ds=$("dStatus"); ds.className="status ds "+(s.cf5>=0?"ok":"ko"); ds.innerHTML=s.cf5>=0?"Autofinancé":"À compléter";
+
+  // Verdict
+  const aBE=solve(p,"apport",0,s.besoin0), lBE=solve(p,"loyer",0,8000), c=CITIES[p.city];
+  let v=`<b>${c.n}</b>, ${p.surface} m² à ${num(p.prixm2,0)} €/m², loyer ${eur(p.loyer)} : `;
+  v+= s.cf5>=0?`le bien ${I("cf5","s'autofinance")}, il te reste ${I("cf5",sgn(s.cf5))} par mois en moyenne sur 5 ans.`
+              :`le bien ne s'autofinance pas, il faut ajouter ${I("cf5",eur(-s.cf5))} par mois en moyenne sur 5 ans.`;
+  if(s.cf5<0){ v+= aBE===null?` Même sans crédit, les charges dépassent le loyer.`:` Pour l'équilibrer, il faudrait un ${I("apportBE","apport d'environ "+eur(Math.ceil(aBE/500)*500))}`;
+    if(aBE!==null&&lBE!==null) v+=` ou un ${I("loyerBE","loyer d'au moins "+eur(Math.ceil(lBE/5)*5))} par mois (${num(Math.ceil(lBE/5)*5/p.surface)} €/m²).`; else if(aBE!==null) v+="."; }
+  v+=` Sur 20 ans, ton ${I("enrich","enrichissement net")} estimé est de ${I("enrich",sgn(s.enrich))}, apport déduit.`;
+  $("verdict").innerHTML=v;
+
+  barChart($("chCf"),s.years.map(x=>x.cf/12));
+  lineChart($("chEq"),s.years.map(x=>x.val-x.crd));
+  const row=(k,a,b,cls="")=>`<span class="${cls}">${I(k,a)}</span><span class="${cls}">${b}</span>`;
+  $("cost").innerHTML=row("prix","Prix du bien",eur(p.prix))+row("notaire","Frais de notaire",eur(s.notaire))+row("travaux","Travaux",eur(p.travaux))
+    +row("creation","Création SCI",eur(p.creation))+row("dossier","Frais de dossier",eur(p.dossier))+row("garantie","Garantie",eur(s.garantie))
+    +row("coutTotal","Coût total",eur(s.coutTotal),"tot")+row("apport","Apport","− "+eur(Math.min(p.apport,s.coutTotal)))
+    +row("loan","Emprunté",eur(s.loan),"tot")+row("interets","Coût du crédit",eur(s.interets));
+  const l=s.years[H-1];
+  $("bilan").innerHTML=row("valeur","Valeur estimée du bien",eur(l.val))+row("crd","Capital restant dû","− "+eur(l.crd))+row("taxPV","Impôt plus-value","− "+eur(s.taxPV))
+    +row("cum","Cash-flows cumulés",sgn(s.cum))+row("apport","Apport de départ","− "+eur(p.apport))+row("enrich","Enrichissement net",sgn(s.enrich),"tot");
+  $("tbl").querySelector("tbody").innerHTML=s.years.map(x=>`<tr><td>${x.y}</td><td>${eur(x.enc)}</td><td>${eur(x.opex)}</td><td>${eur(x.intAss)}</td><td>${eur(x.princ)}</td><td>${x.tax<-.5?"− "+eur(-x.tax)+" éco.":eur(Math.max(0,x.tax))}</td><td class="${x.cf>=0?"ok":"ko"}">${sgn(x.cf)}</td><td>${eur(x.crd)}</td><td>${eur(x.val)}</td></tr>`).join("");
+
+  // Villes
+  const res=Object.keys(CITIES).map(k=>{ const q=cityParams(p,k), r=sim(q); return {k,q,r,a:solve(q,"apport",0,r.besoin0)}; });
+  $("chips").innerHTML=res.map(({k,r})=>{ const c=CITIES[k]; return `<button class="chip" data-k="${k}" aria-pressed="${k===p.city}">
+    <span class="nm">${c.n}<em>${c.dep}</em></span>
+    <span class="kv"><span>Achat</span><b>${num(c.pm2,0)} €/m²</b></span>
+    <span class="kv"><span>Loyer</span><b>${num(c.lm2)} €/m²</b></span>
+    <span class="cf ${r.cf5>=0?"ok":"ko"}"><span class="dot" style="background:${r.cf5>=0?"var(--good)":"var(--neg)"}"></span>${sgn(r.cf5)} / mois</span></button>`; }).join("");
+  const maxP=Math.max(...Object.values(CITIES).map(c=>c.pm2)), maxL=Math.max(...Object.values(CITIES).map(c=>c.lm2));
+  $("cmp").querySelector("tbody").innerHTML=res.map(({k,q,r,a})=>{ const c=CITIES[k];
+    const at=a===null?"impossible":(a<=0?"0 €":eur(Math.ceil(a/500)*500));
+    return `<tr class="city ${k===p.city?"sel":""}" data-k="${k}" tabindex="0"><td class="nm">${c.n}<span class="rng">${c.dep==="57"?"Moselle":"Bas-Rhin"} · ${c.date}</span></td>
+      <td><span class="bar" style="width:${Math.round(c.pm2/maxP*50)}px;background:var(--pos)"></span>${num(c.pm2,0)} €<span class="rng">${num(c.pLo,0)} à ${num(c.pHi,0)}</span></td>
+      <td><span class="bar" style="width:${Math.round(c.lm2/maxL*50)}px;background:var(--c-loyer)"></span>${num(c.lm2)} €<span class="rng">${num(c.lLo)} à ${num(c.lHi)}</span></td>
+      <td>${eur(q.prix)}</td><td>${eur(q.loyer)}</td><td>${pct(r.rdtB)}</td><td>${eur(r.mens+r.assM)}</td>
+      <td class="${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}</td><td>${at}</td><td class="${r.endet<=35?"ok":"ko"}">${pct(r.endet)}</td></tr>`; }).join("");
+  fillLive();
+}
+function pickCity(k,scroll){ CITY=k; loadCity(); render(); if(scroll) document.getElementById("simuler").scrollIntoView({behavior:"smooth"}); }
+document.addEventListener("click",e=>{ const ch=e.target.closest(".chip"); if(ch) return pickCity(ch.dataset.k,false);
+  const tr=e.target.closest("#cmp tr.city"); if(tr) return pickCity(tr.dataset.k,true);
+  const rg=e.target.closest("[data-reg]"); if(rg){ REGIME=rg.dataset.reg; render(); } });
+document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("#cmp tr.city"); if(tr&&e.key==="Enter") pickCity(tr.dataset.k,true); });
+
+/* ---------- Lexique ---------- */
+function renderLex(q=""){ q=q.trim().toLowerCase(); let h="";
+  for(const [g,gn] of Object.entries(G)){ const items=Object.values(INFO).filter(it=>it.g===g&&(!q||(it.t+it.b).toLowerCase().includes(q)));
+    if(!items.length) continue; h+=`<div class="lexg">${gn}</div>`+items.map(it=>`<div class="card"><h3>${it.t}</h3>${it.b}</div>`).join(""); }
+  $("lex").innerHTML=h||`<p class="lead2">Aucun terme ne correspond à « ${q.replace(/[<>&]/g,"")} ».</p>`; }
+$("lexq").addEventListener("input",e=>renderLex(e.target.value));
+
+/* ---------- Événements ---------- */
+loadCity(); render(); renderLex();
+$("surface").addEventListener("input",()=>{ const c=CITIES[CITY],s=+$("surface").value||0; $("copro").value=Math.round(c.cm2*s/10)*10; $("tf").value=Math.round(c.tm2*s/10)*10; });
+panel.querySelectorAll("input,select").forEach(el=>{
+  if(el.type==="range") el.addEventListener("input",()=>{ const id=el.id.slice(0,-2); $(id).value=el.value; $(id).dispatchEvent(new Event("input")); });
+  else el.addEventListener("input",render); });
+const dock=$("dock");
+new IntersectionObserver(([e])=>dock.classList.toggle("show",!e.isIntersecting&&e.boundingClientRect.top<0)).observe($("result"));
+dock.addEventListener("click",()=>$("top").scrollIntoView({behavior:"smooth"}));
+</script>
+</body>
+</html>
