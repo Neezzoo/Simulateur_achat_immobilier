@@ -10,19 +10,16 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316202c'/%3E%3Cpath d='M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z' fill='%23e8795f'/%3E%3Cpath d='M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z' fill='%23f3c2b4'/%3E%3Cg fill='%2316202c'%3E%3Crect x='19' y='18' width='5' height='5' rx='1'/%3E%3Crect x='28' y='18' width='5' height='5' rx='1'/%3E%3Crect x='19' y='27' width='5' height='5' rx='1'/%3E%3Crect x='28' y='27' width='5' height='5' rx='1'/%3E%3Crect x='19' y='36' width='5' height='5' rx='1'/%3E%3Crect x='28' y='36' width='5' height='5' rx='1'/%3E%3Crect x='23' y='45' width='6' height='9' rx='1'/%3E%3Crect x='41.5' y='31' width='5' height='4' rx='1'/%3E%3Crect x='41.5' y='39' width='5' height='4' rx='1'/%3E%3C/g%3E%3Crect x='10' y='53' width='44' height='3' rx='1.5' fill='%23f3c2b4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Mise en page : bandeau résultat sombre pleine largeur, sélecteur de villes en tuiles, puis réglages (gauche) et détails (droite).
-   Pleine largeur sur ordinateur, une colonne aérée et une barre de résultat fixe en bas sur téléphone. */
+/* Mise en page : parcours en étapes à déplier (gauche), réponse collante (droite) ; une colonne sur téléphone avec la réponse en barre fixe. */
 :root{
-  --bg:#f1f3f6; --panel:#ffffff; --ink:#16202c; --ink-2:#4a5767; --ink-3:#717d8b;
-  --line:#dde2e8; --field:#f6f8fa;
-  --accent:#b4492f; --accent-2:#e8795f; --accent-soft:#fbe9e3;
-  --band:#16202c; --band-ink:#f3f5f8; --band-2:#aab5c2; --band-line:#2b3746;
-  --pos:#2a78d6; --neg:#e34948; --good:#1d7a4a; --good-soft:#e2f3ea; --bad-soft:#fde8e8;
-  --c-credit:#2a78d6; --c-charges:#eda100; --c-impot:#6250d6; --c-loyer:#1baf7a;
-  --scrim:rgba(16,22,30,.4);
-  --r:14px;
+  --bg:#f3f4f6; --panel:#ffffff; --ink:#16202c; --ink-2:#4a5767; --ink-3:#737f8c;
+  --line:#e0e4ea; --field:#f6f7f9;
+  --accent:#b4492f; --accent-soft:#fbe9e3; --accent-ink:#ffffff;
+  --pos:#2a78d6; --neg:#e34948; --good:#1d7a4a; --good-soft:#e3f4ea; --bad-soft:#fdeaea;
+  --c-loyer:#1baf7a; --c-credit:#2a78d6; --c-charges:#eda100; --c-impot:#6250d6;
+  --scrim:rgba(16,22,30,.4); --shadow:0 1px 2px rgba(16,22,30,.05),0 8px 24px rgba(16,22,30,.06);
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -30,203 +27,193 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0f141a; --panel:#18202a; --ink:#eef1f5; --ink-2:#b4bfcb; --ink-3:#8a96a3; --line:#2a3440; --field:#131a22;
-  --accent:#ef8a70; --accent-2:#ef8a70; --accent-soft:#3a2520;
-  --band:#0a0e13; --band-ink:#eef1f5; --band-2:#9aa6b3; --band-line:#232d39;
+  --accent:#ef8a70; --accent-soft:#3a2520; --accent-ink:#16202c;
   --pos:#3987e5; --neg:#e66767; --good:#4cc283; --good-soft:#15301f; --bad-soft:#3a1c1c;
-  --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9; --c-loyer:#199e70;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}}
+  --c-loyer:#199e70; --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9;
+  --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f141a; --panel:#18202a; --ink:#eef1f5; --ink-2:#b4bfcb; --ink-3:#8a96a3; --line:#2a3440; --field:#131a22;
-  --accent:#ef8a70; --accent-2:#ef8a70; --accent-soft:#3a2520;
-  --band:#0a0e13; --band-ink:#eef1f5; --band-2:#9aa6b3; --band-line:#232d39;
+  --accent:#ef8a70; --accent-soft:#3a2520; --accent-ink:#16202c;
   --pos:#3987e5; --neg:#e66767; --good:#4cc283; --good-soft:#15301f; --bad-soft:#3a1c1c;
-  --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9; --c-loyer:#199e70;
-  --scrim:rgba(0,0,0,.6); color-scheme:dark}
+  --c-loyer:#199e70; --c-credit:#3987e5; --c-charges:#c98500; --c-impot:#9085e9;
+  --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{scroll-behavior:smooth;scroll-padding-top:72px}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
-.gut{padding-left:max(clamp(16px,3vw,48px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,3vw,48px),env(safe-area-inset-right,0px))}
-.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.gut{padding-left:max(clamp(16px,4vw,56px),env(safe-area-inset-left,0px));padding-right:max(clamp(16px,4vw,56px),env(safe-area-inset-right,0px))}
 
-/* ---------- barre du haut ---------- */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--band);color:var(--band-ink);border-bottom:1px solid var(--band-line)}
-.top .row{display:flex;align-items:center;gap:16px;height:60px}
-.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;font-family:var(--f-display);font-weight:700;font-size:18px;white-space:nowrap}
-.brand svg{width:30px;height:30px;flex:none}
-.top nav{display:flex;gap:2px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
-.top nav a{display:flex;align-items:center;gap:6px;color:var(--band-2);text-decoration:none;padding:8px 12px;border-radius:8px;font-weight:500;white-space:nowrap}
-.top nav a:hover,.top nav a:focus-visible{color:var(--band-ink);background:var(--band-line)}
-.top nav svg{width:16px;height:16px}
-@media (max-width:720px){.brand span.long{display:none}.top nav a span{display:none}.top nav a{padding:10px}.top nav svg{width:20px;height:20px}}
+header.intro{padding-block:28px 8px;display:flex;align-items:center;gap:14px}
+header.intro svg{width:44px;height:44px;flex:none}
+header.intro h1{font:800 clamp(24px,3.4vw,40px)/1.08 var(--f-display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+header.intro p{margin:4px 0 0;color:var(--ink-2);font-size:15px}
 
-/* ---------- bandeau résultat ---------- */
-.band{background:var(--band);color:var(--band-ink);padding-block:28px 34px}
-.band-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(20px,4vw,64px);align-items:center}
-@media (max-width:960px){.band-grid{grid-template-columns:minmax(0,1fr)}}
-.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);font-weight:600;margin-bottom:8px}
-h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,4.2vw,52px);line-height:1.04;margin:0 0 12px;text-wrap:balance;letter-spacing:-.02em}
-.band p.lead{color:var(--band-2);margin:0;max-width:60ch;font-size:15.5px}
-.hint{display:inline-flex;gap:8px;align-items:center;margin-top:16px;font-size:13px;color:var(--band-2);border:1px solid var(--band-line);border-radius:999px;padding:6px 12px}
-.result{background:color-mix(in srgb,var(--band-ink) 6%,transparent);border:1px solid var(--band-line);border-radius:20px;padding:clamp(18px,2.4vw,28px)}
-.result .top-line{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.result .lbl{font-size:13px;color:var(--band-2)}
-.big{font:600 clamp(40px,6vw,64px)/1 var(--f-mono);letter-spacing:-.03em;margin-top:6px;font-variant-numeric:tabular-nums}
-.big small{font-size:.38em;color:var(--band-2);letter-spacing:0;margin-left:4px}
-.status{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px}
-.status.ok{background:var(--good-soft);color:var(--good)} .status.ko{background:var(--bad-soft);color:var(--neg)}
-.flow{margin-top:20px;display:grid;gap:10px}
-.flow .fr{display:grid;grid-template-columns:72px minmax(0,1fr) 84px;gap:10px;align-items:center;font-size:13px}
-.flow .fr>span:first-child{color:var(--band-2)}
-.flow .fr>span:last-child{text-align:right;font-family:var(--f-mono)}
-.track{height:22px;border-radius:6px;background:var(--band-line);display:flex;overflow:hidden;gap:2px}
-.track i{display:block;height:100%;transition:width .35s ease}
-.flow-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-size:12px;color:var(--band-2)}
-.flow-legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.minis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}
-.mini{all:unset;box-sizing:border-box;cursor:pointer;border:1px solid var(--band-line);border-radius:12px;padding:10px 12px;min-width:0}
-.mini:hover{border-color:var(--band-2)} .mini:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
-.mini .l{font-size:12px;color:var(--band-2)}
-.mini .v{font:600 18px var(--f-mono);margin-top:2px;white-space:nowrap}
-.mini .v.okc{color:#5fd39a} .mini .v.koc{color:#ff8a8a}
-@media (max-width:480px){.minis{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.minis .mini:last-child{grid-column:1/-1}}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:clamp(18px,3vw,40px);align-items:start;padding-block:18px 32px}
+@media (max-width:1000px){.layout{grid-template-columns:minmax(0,1fr)}}
+.steps{display:flex;flex-direction:column;gap:12px;min-width:0}
 
-/* ---------- villes ---------- */
-.cities{padding-block:22px 6px}
-.cities h2{font:700 18px var(--f-display);margin:0 0 12px}
-.chips{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
-@media (max-width:1100px){.chips{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:640px){.chips{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));padding-bottom:6px;scrollbar-width:none}.chip{flex:0 0 72%;scroll-snap-align:start}}
-.chip{all:unset;box-sizing:border-box;cursor:pointer;background:var(--panel);border:1.5px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0;transition:border-color .15s,transform .15s}
-.chip:hover{border-color:var(--ink-3);transform:translateY(-1px)}
-.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.chip .nm{display:flex;justify-content:space-between;align-items:baseline;font:700 17px var(--f-display)}
-.chip .nm em{font:500 11px var(--f-mono);color:var(--ink-3);font-style:normal}
-.chip .kv{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3)}
-.chip .kv b{font:600 13px var(--f-mono);color:var(--ink)}
-.chip .cf{font:600 15px var(--f-mono);display:flex;align-items:center;gap:6px}
-.dot{width:9px;height:9px;border-radius:50%;flex:none}
+/* étapes et volets */
+details.step,details.fold{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}
+details.step>summary,details.fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px;padding:18px 20px;min-height:72px}
+details>summary::-webkit-details-marker{display:none}
+details.step>summary:focus-visible,details.fold>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:18px}
+.n{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 15px var(--f-display);background:var(--accent-soft);color:var(--accent);flex:none}
+details.step[open] .n{background:var(--accent);color:var(--accent-ink)}
+.st{display:flex;flex-direction:column;min-width:0;flex:1}
+.st b{font:700 18px var(--f-display)}
+.st span{font-size:14px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details[open]>summary .st span.sum{display:none}
+.chev{width:10px;height:10px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);transition:transform .2s;flex:none;margin-right:4px}
+details[open]>summary .chev{transform:rotate(-135deg)}
+.sbody{padding:0 20px 22px}
+@media (min-width:640px){.sbody{padding-left:68px}}
+.q{color:var(--ink-2);margin:0 0 16px;font-size:15px}
+.next{margin-top:18px;display:inline-flex;align-items:center;gap:8px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;padding:12px 18px;border-radius:12px;cursor:pointer;min-height:46px}
+.next:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-/* ---------- grille réglages / détails ---------- */
-.work{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:clamp(16px,2vw,28px);align-items:start;padding-block:22px 40px}
-@media (max-width:960px){.work{grid-template-columns:minmax(0,1fr)}}
-aside.settings{display:flex;flex-direction:column;gap:12px;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow-y:auto;padding-right:4px;scrollbar-width:thin}
-@media (max-width:960px){aside.settings{position:static;max-height:none;overflow:visible;padding-right:0}}
-details.grp{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
-details.grp summary{cursor:pointer;padding:16px 18px;list-style:none;display:flex;align-items:center;gap:12px}
-details.grp summary::-webkit-details-marker{display:none}
-details.grp summary .ico{width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
-details.grp summary .ico svg{width:18px;height:18px}
-details.grp summary .t{font:700 16px var(--f-display)}
-details.grp summary .d{font-size:12px;color:var(--ink-3)}
-details.grp summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(45deg);transition:transform .2s}
-details.grp[open] summary::after{transform:rotate(-135deg)}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px 14px;padding:2px 18px 18px}
+/* villes */
+.cities{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.cities{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.city{all:unset;box-sizing:border-box;cursor:pointer;border:1.5px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:2px;min-height:76px;background:var(--panel);transition:border-color .15s}
+.city:hover{border-color:var(--ink-3)} .city:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.city[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.city b{font:700 17px var(--f-display)}
+.city span{font-size:13px;color:var(--ink-3)}
+
+/* grand curseur */
+.amount{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.amount output{font:600 clamp(30px,5vw,40px)/1.1 var(--f-mono);letter-spacing:-.02em}
+.amount small{color:var(--ink-3);font-size:14px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(to right,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--line)}
+input[type=range]::-moz-range-progress{height:8px;border-radius:4px;background:var(--accent)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--panel);border:3px solid var(--accent);margin-top:-10px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--panel);border:3px solid var(--accent)}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-3);margin-top:-2px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:18px}
+@media (max-width:520px){.facts{grid-template-columns:minmax(0,1fr)}}
+.fact{all:unset;box-sizing:border-box;cursor:pointer;background:var(--field);border-radius:12px;padding:12px 14px}
+.fact:focus-visible{outline:2px solid var(--accent)}
+.fact span{display:block;font-size:12.5px;color:var(--ink-3)}
+.fact b{font:600 18px var(--f-mono)}
+.block{margin-top:22px}
+.block:first-child{margin-top:0}
+.lab{font-size:14px;color:var(--ink-2);margin-bottom:4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.lab output{font:600 17px var(--f-mono);color:var(--ink)}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{all:unset;box-sizing:border-box;cursor:pointer;border:1.5px solid var(--line);border-radius:999px;padding:9px 16px;font-weight:600;font-size:14px;min-height:42px;display:inline-flex;align-items:center}
+.pill[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* réponse */
+aside.answer{position:sticky;top:20px}
+@media (max-width:1000px){aside.answer{position:static}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px}
+.ans-k{font-size:14px;color:var(--ink-2)}
+.ans-v{font:600 clamp(40px,6vw,56px)/1.05 var(--f-mono);letter-spacing:-.03em;margin:4px 0 8px}
+.ans-v.ok{color:var(--good)} .ans-v.ko{color:var(--neg)}
+.ans-s{font-size:16px;margin:0 0 18px}
+.flow{display:grid;gap:8px}
+.fr{display:grid;grid-template-columns:62px minmax(0,1fr) 70px;gap:10px;align-items:center;font-size:13px}
+.fr>span:first-child{color:var(--ink-2)} .fr>span:last-child{text-align:right;font-family:var(--f-mono)}
+.track{height:18px;border-radius:6px;background:var(--field);display:flex;overflow:hidden;gap:2px}
+.track i{display:block;height:100%;transition:width .3s ease}
+.leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.leg b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lines{margin-top:18px;border-top:1px solid var(--line)}
+.ln{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;gap:12px;width:100%;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.ln:focus-visible{outline:2px solid var(--accent)}
+.ln>span:first-child{color:var(--ink-2)}
+.ln>span:last-child{font:600 15px var(--f-mono);text-align:right}
+.tipline{margin:14px 0 0;font-size:14px;color:var(--ink-2);background:var(--field);border-radius:12px;padding:12px 14px}
+.tipline b{color:var(--ink)}
+
+/* volets du bas */
+.folds{display:flex;flex-direction:column;gap:12px;padding-block:8px 40px}
+.fold .ico{width:34px;height:34px;border-radius:10px;background:var(--field);display:grid;place-items:center;flex:none;color:var(--ink-2)}
+.fold .ico svg{width:18px;height:18px}
+.fbody{padding:0 20px 22px}
+.sub{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px 16px;margin-bottom:18px}
+.subt{font:700 15px var(--f-display);margin:18px 0 10px;color:var(--ink)}
+.subt:first-child{margin-top:4px}
 .f{display:flex;flex-direction:column;gap:6px;min-width:0}
-.f.full,.f.slider{grid-column:1/-1}
-.f .lab{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.box{display:flex;align-items:center;background:var(--field);border:1px solid var(--line);border-radius:10px;min-height:44px}
+.f .flab{font-size:13.5px;color:var(--ink-2)}
+.box{display:flex;align-items:center;background:var(--field);border:1px solid var(--line);border-radius:10px;min-height:46px}
 .box:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.box input,.box select{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:500 15px var(--f-mono);padding:9px 10px;outline:none}
+.box input,.box select{width:100%;min-width:0;border:0;background:transparent;color:var(--ink);font:500 15px var(--f-mono);padding:10px;outline:none}
 .box select{font-family:var(--f-body)}
 .box .u{padding:0 10px;color:var(--ink-3);font-size:12.5px;white-space:nowrap}
-.box.ro{background:transparent;border-style:dashed}
-.slider .srow{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:12px;align-items:center}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;margin:0;cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(to right,var(--accent) var(--p,50%),var(--line) var(--p,50%))}
-input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--line)}
-input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--accent)}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--panel);border:2px solid var(--accent);margin-top:-8px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
-input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
-input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
-.f small{color:var(--ink-3);font-size:12px}
-.chk{grid-column:1/-1;display:flex;gap:10px;align-items:center;font-size:13px;color:var(--ink-2);min-height:36px}
+.chk{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--ink-2);min-height:46px}
 .chk input{width:20px;height:20px;accent-color:var(--accent)}
-.tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:5px;font-weight:600}
-.tag.src{background:var(--good-soft);color:var(--good)}
-.tag.est{border:1px solid var(--line);color:var(--ink-3)}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
-.seg button{all:unset;box-sizing:border-box;text-align:center;padding:9px 6px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
-.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.seg button:focus-visible{outline:2px solid var(--accent)}
-
-/* ---------- détails ---------- */
-.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.6vw,22px);min-width:0}
-@media (min-width:1700px){.details{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:720px){.details{grid-template-columns:minmax(0,1fr)}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:clamp(16px,1.6vw,22px);min-width:0}
-.card.wide{grid-column:1/-1}
-.card h3{font:700 18px var(--f-display);margin:0 0 4px}
-.card .sub{color:var(--ink-2);margin:0 0 14px;font-size:13.5px}
-.verdict{font-size:16px;line-height:1.65;margin:0}
-.verdict .i{font-family:var(--f-mono);font-weight:600}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.inner{border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.inner h3{font:700 16px var(--f-display);margin:0 0 4px}
+.inner p.s{margin:0 0 10px;color:var(--ink-2);font-size:13.5px}
 .chart svg{display:block;width:100%;height:auto}
 .chart text{fill:var(--ink-3);font:11px var(--f-mono)}
-.legend{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:8px;flex-wrap:wrap}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.rows{display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:14px}
+.rows{display:grid;grid-template-columns:1fr auto;gap:8px 16px;font-size:14.5px}
 .rows>span:nth-child(even){font-family:var(--f-mono);text-align:right}
 .rows .tot{font-weight:600;border-top:1px solid var(--line);padding-top:8px}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:16px}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
 th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{font-size:12px;color:var(--ink-2);font-weight:600;vertical-align:bottom}
+th{font-size:12px;color:var(--ink-2);font-weight:600}
 td{font-family:var(--f-mono);font-size:13px}
-th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
-tr.city{cursor:pointer} tr.city:hover td{background:var(--field)}
-tr.sel td{background:var(--accent-soft)!important} tr.sel td:first-child{color:var(--accent);font-weight:600}
-td.nm{font-family:var(--f-body);font-size:14px}
-.rng{display:block;color:var(--ink-3);font-size:11px}
-.bar{display:inline-block;height:7px;border-radius:4px;vertical-align:middle;margin-right:8px}
+th:first-child,td:first-child{text-align:left}
 .ok{color:var(--good)} .ko{color:var(--neg)}
 
-/* ---------- sections bas ---------- */
-section.more{padding-block:40px;border-top:1px solid var(--line)}
-h2.sec{font:800 clamp(24px,3vw,34px)/1.1 var(--f-display);margin:0 0 8px;letter-spacing:-.01em;text-wrap:balance}
-.lead2{color:var(--ink-2);margin:0;max-width:72ch}
-.ey2{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:8px}
-.lex-filter{max-width:420px;margin:18px 0}
-.lex{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.lex .card h3{font-size:15.5px}
-.lex .card p{margin:6px 0 0;color:var(--ink-2);font-size:13.5px;line-height:1.6}
-.lexg{grid-column:1/-1;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:14px}
-.notes{columns:2 420px;column-gap:40px;color:var(--ink-2);font-size:14.5px;line-height:1.65;padding-left:18px;margin-top:18px}
-.notes li{margin:0 0 10px;break-inside:avoid}
+/* comparaison */
+.cmp{display:flex;flex-direction:column;gap:8px}
+.crow{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 14px;align-items:center;border:1.5px solid var(--line);border-radius:14px;padding:14px 16px}
+.crow:hover{border-color:var(--ink-3)} .crow:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.crow.sel{border-color:var(--accent);background:var(--accent-soft)}
+.crow b{font:700 17px var(--f-display)}
+.crow .d{grid-column:1;font-size:13.5px;color:var(--ink-2)}
+.crow .cf{grid-row:1/span 2;grid-column:2;text-align:right;font:600 19px var(--f-mono)}
+.crow .cf small{display:block;font:500 11.5px var(--f-body);color:var(--ink-3)}
+.rank{display:inline-block;font:600 11px var(--f-body);color:var(--ink-3);margin-left:8px}
+
+.lexq{max-width:420px;margin-bottom:14px}
+.lex{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.lex .inner h3{font-size:15px}
+.lex .inner p{margin:6px 0 0;color:var(--ink-2);font-size:14px;line-height:1.6}
+.lexg{grid-column:1/-1;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-top:10px}
+.notes{color:var(--ink-2);font-size:15px;line-height:1.65;padding-left:18px;margin:4px 0 0;max-width:80ch}
+.notes li{margin-bottom:10px}
 a{color:var(--accent)}
-footer{padding-block:28px 120px;color:var(--ink-3);font-size:12.5px;border-top:1px solid var(--line)}
+footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
 
-/* ---------- info cliquable ---------- */
-.i{all:unset;cursor:help;border-bottom:1.5px dotted currentColor;text-underline-offset:3px}
-.i:hover,.i:focus-visible{color:var(--accent);border-bottom-color:var(--accent)}
-.band .i:hover,.band .i:focus-visible{color:var(--accent-2)}
+.i{all:unset;cursor:help;border-bottom:1.5px dotted currentColor}
+.i:hover,.i:focus-visible{color:var(--accent)}
 .i:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.qi{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1.5px solid currentColor;font:700 10px var(--f-mono);opacity:.7}
+.qi{all:unset;cursor:help;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink-3);color:var(--ink-3);font:700 11px var(--f-mono);vertical-align:1px;margin-left:6px}
+.qi:hover,.qi:focus-visible{border-color:var(--accent);color:var(--accent)}
 
-/* ---------- barre mobile ---------- */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--band);color:var(--band-ink);border-top:1px solid var(--band-line);
-  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:none;align-items:center;gap:14px;transform:translateY(110%);transition:transform .25s}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--ink);color:var(--bg);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:none;align-items:center;gap:12px;transform:translateY(110%);transition:transform .25s;cursor:pointer}
 .dock.show{transform:none}
-.dock .dl{font-size:11px;color:var(--band-2)}
-.dock .dv{font:600 20px var(--f-mono)}
-.dock .ds{margin-left:auto}
-@media (max-width:960px){.dock{display:flex}}
+.dock .dl{font-size:12px;opacity:.75}
+.dock .dv{font:600 22px var(--f-mono)}
+.dock .dm{margin-left:auto;font-size:14px;font-weight:600;text-align:right}
+@media (max-width:1000px){.dock{display:flex}}
 
-/* ---------- panneau explication ---------- */
 .scrim{position:fixed;inset:0;background:var(--scrim);z-index:50}
 .drawer{position:fixed;z-index:51;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--panel);border-left:1px solid var(--line);
   padding:calc(22px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(28px + env(safe-area-inset-bottom,0px)) 24px;overflow-y:auto;box-shadow:-16px 0 48px rgba(0,0,0,.18)}
-@media (max-width:640px){.drawer{top:auto;left:0;width:100%;max-height:82vh;border-left:0;border-radius:20px 20px 0 0;padding-left:max(22px,env(safe-area-inset-left,0px));padding-top:30px}
+@media (max-width:640px){.drawer{top:auto;left:0;width:100%;max-height:82vh;border-left:0;border-radius:22px 22px 0 0;padding-left:max(22px,env(safe-area-inset-left,0px));padding-top:32px}
   .drawer::before{content:"";position:absolute;top:10px;left:50%;width:40px;height:4px;border-radius:2px;background:var(--line);transform:translateX(-50%)}}
-.drawer .kick{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.drawer .kick{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
 .drawer h4{font:700 24px/1.15 var(--f-display);margin:6px 48px 14px 0}
-.drawer .body{font-size:15px;line-height:1.65;color:var(--ink-2)}
+.drawer .body{font-size:15.5px;line-height:1.65;color:var(--ink-2)}
 .drawer .body p{margin:0 0 12px}
-.drawer .live{margin-top:16px;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;line-height:1.6}
-.drawer .live .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.drawer .live{margin-top:16px;background:var(--field);border-radius:12px;padding:14px;font-size:14.5px;line-height:1.6}
+.drawer .live .k{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px}
 .drawer .live code{font-family:var(--f-mono);font-size:13px;color:var(--ink)}
-.drawer .x{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-size:22px;line-height:1;cursor:pointer}
+.drawer .x{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:22px;line-height:1;cursor:pointer}
 @media (max-width:640px){.drawer .x{top:18px}}
 .tip{position:absolute;z-index:40;pointer-events:none;background:var(--ink);color:var(--bg);font:12px var(--f-mono);padding:7px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-115%)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
@@ -234,130 +221,145 @@ footer{padding-block:28px 120px;color:var(--ink-3);font-size:12.5px;border-top:1
 </head>
 <body>
 
-<header class="top gut"><div class="row">
-  <a class="brand" href="#top" aria-label="Simulateur SCI Alsace">
-    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z" fill="#e8795f"/><path d="M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z" fill="#f3c2b4"/><g fill="#16202c"><rect x="19" y="18" width="5" height="5" rx="1"/><rect x="28" y="18" width="5" height="5" rx="1"/><rect x="19" y="27" width="5" height="5" rx="1"/><rect x="28" y="27" width="5" height="5" rx="1"/><rect x="19" y="36" width="5" height="5" rx="1"/><rect x="28" y="36" width="5" height="5" rx="1"/><rect x="23" y="45" width="6" height="9" rx="1"/><rect x="41.5" y="31" width="5" height="4" rx="1"/><rect x="41.5" y="39" width="5" height="4" rx="1"/></g><rect x="10" y="53" width="44" height="3" rx="1.5" fill="#f3c2b4"/></svg>
-    <span>Simulateur <span class="long">SCI Alsace</span></span>
-  </a>
-  <nav aria-label="Sections">
-    <a href="#simuler" title="Simuler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Simuler</span></a>
-    <a href="#villes" title="Villes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span>Villes</span></a>
-    <a href="#lexique" title="Lexique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg><span>Lexique</span></a>
-    <a href="#hypotheses" title="Hypothèses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg><span>Hypothèses</span></a>
-  </nav>
-</div></header>
+<header class="intro gut">
+  <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16202c"/><path d="M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z" fill="#e8795f"/><path d="M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z" fill="#f3c2b4"/><g fill="#16202c"><rect x="19" y="18" width="5" height="5" rx="1"/><rect x="28" y="18" width="5" height="5" rx="1"/><rect x="19" y="27" width="5" height="5" rx="1"/><rect x="28" y="27" width="5" height="5" rx="1"/><rect x="19" y="36" width="5" height="5" rx="1"/><rect x="28" y="36" width="5" height="5" rx="1"/><rect x="23" y="45" width="6" height="9" rx="1"/><rect x="41.5" y="31" width="5" height="4" rx="1"/><rect x="41.5" y="39" width="5" height="4" rx="1"/></g><rect x="10" y="53" width="44" height="3" rx="1.5" fill="#f3c2b4"/></svg>
+  <div><h1>Est-ce que le loyer paie le crédit ?</h1><p>Trois choix, une réponse. Touche un mot souligné ou un <span class="qi" style="cursor:default">i</span> pour avoir l'explication.</p></div>
+</header>
 
-<div id="top" class="band gut"><div class="band-grid">
-  <div>
-    <div class="eyebrow">Investissement locatif en SCI · Alsace et Moselle</div>
-    <h1>Est-ce que le loyer paie le crédit ?</h1>
-    <p class="lead">Choisis une ville et une surface : prix et loyer se calculent avec les prix au m² du marché d'octobre 2026. Ajuste l'apport, le crédit, les charges et la fiscalité, tout se met à jour en direct.</p>
-    <div class="hint"><span class="qi">i</span> Touche un chiffre ou un mot souligné pour savoir ce qu'il veut dire.</div>
-  </div>
-  <div class="result" id="result">
-    <div class="top-line">
-      <div><div class="lbl"><button class="i" data-info="cf5">Cash-flow mensuel après impôt</button> · moyenne 5 ans</div>
-        <div class="big" id="kCf"></div></div>
-      <span class="status" id="kStatus"></span>
-    </div>
-    <div class="flow" aria-label="Où va le loyer chaque mois, année 1">
-      <div class="fr"><span>Entrées</span><div class="track" id="trIn"></div><span id="vIn"></span></div>
-      <div class="fr"><span>Sorties</span><div class="track" id="trOut"></div><span id="vOut"></span></div>
-      <div class="flow-legend">
-        <span><b style="background:var(--c-loyer)"></b><button class="i" data-info="enc">Loyer</button></span>
-        <span><b style="background:var(--c-credit)"></b><button class="i" data-info="mens">Crédit</button></span>
-        <span><b style="background:var(--c-charges)"></b><button class="i" data-info="opex">Charges</button></span>
-        <span><b style="background:var(--c-impot)"></b><button class="i" data-info="tax">Impôt</button></span>
+<div class="layout gut">
+  <div class="steps">
+    <details class="step" name="etapes" open id="s1">
+      <summary><span class="n">1</span><span class="st"><b>Où acheter ?</b><span class="sum" id="sum1"></span></span><span class="chev"></span></summary>
+      <div class="sbody">
+        <p class="q">Choisis une ville. Les prix et loyers au m² viennent du marché d'octobre 2026.<button class="qi" data-info="city" aria-label="Explication : ville">i</button></p>
+        <div class="cities" id="cities"></div>
+        <button class="next" data-go="s2">Suivant : le budget</button>
       </div>
-    </div>
-    <div class="minis">
-      <button class="mini" data-info="mens"><div class="l">Mensualité</div><div class="v" id="kMens"></div></button>
-      <button class="mini" data-info="rdt"><div class="l">Rendement brut</div><div class="v" id="kRdt"></div></button>
-      <button class="mini" data-info="endet"><div class="l">Endettement</div><div class="v" id="kEnd"></div></button>
-    </div>
-  </div>
-</div></div>
+    </details>
 
-<div id="simuler" class="gut">
-  <div class="cities">
-    <h2><button class="i" data-info="city">Choisis une ville</button></h2>
-    <div class="chips" id="chips" role="group" aria-label="Villes"></div>
+    <details class="step" name="etapes" id="s2">
+      <summary><span class="n">2</span><span class="st"><b>Quel prix pour le bien ?</b><span class="sum" id="sum2"></span></span><span class="chev"></span></summary>
+      <div class="sbody">
+        <p class="q">Le prix affiché par le vendeur, hors frais de notaire.<button class="qi" data-info="prix" aria-label="Explication : prix">i</button></p>
+        <div class="amount"><output id="oPrix"></output><small>prix du bien</small></div>
+        <input type="range" id="budget" min="30000" max="350000" step="1000" aria-label="Prix du bien">
+        <div class="scale"><span>30 000 €</span><span>350 000 €</span></div>
+        <div class="facts">
+          <button class="fact" data-info="surface"><span>Surface à ce prix</span><b id="fSurf"></b></button>
+          <button class="fact" data-info="loyer"><span>Loyer estimé</span><b id="fLoyer"></b></button>
+          <button class="fact" data-info="notaire"><span>Frais de notaire</span><b id="fNot"></b></button>
+        </div>
+        <button class="next" data-go="s3">Suivant : le financement</button>
+      </div>
+    </details>
+
+    <details class="step" name="etapes" id="s3">
+      <summary><span class="n">3</span><span class="st"><b>Comment tu finances ?</b><span class="sum" id="sum3"></span></span><span class="chev"></span></summary>
+      <div class="sbody">
+        <div class="block">
+          <div class="lab"><span><button class="i" data-info="apport">Apport</button></span><output id="oApport"></output></div>
+          <input type="range" id="apport" min="0" max="150000" step="1000" aria-label="Apport">
+        </div>
+        <div class="block">
+          <div class="lab"><span><button class="i" data-info="duree">Durée du crédit</button></span></div>
+          <div class="pills" id="durees"></div>
+        </div>
+        <div class="block">
+          <div class="lab"><span><button class="i" data-info="taux">Taux du crédit</button></span><output id="oTaux"></output></div>
+          <input type="range" id="taux" min="1" max="6" step="0.05" aria-label="Taux du crédit">
+        </div>
+        <div class="block">
+          <div class="lab"><span><button class="i" data-info="revenu">Ton salaire net</button></span><output id="oRev"></output></div>
+          <input type="range" id="revenu" min="800" max="6000" step="10" aria-label="Salaire net">
+        </div>
+        <button class="next" data-go="answer">Voir la réponse</button>
+      </div>
+    </details>
   </div>
-  <div class="work">
-    <aside class="settings" id="panel" aria-label="Réglages"></aside>
-    <div class="details">
-      <div class="card wide"><h3>Autofinancement</h3><p class="verdict" id="verdict"></p></div>
-      <div class="card">
-        <h3><button class="i" data-info="chartCf">Cash-flow mensuel, année par année</button></h3>
-        <p class="sub">Sous zéro, c'est ce que tu complètes de ta poche chaque mois.</p>
-        <div class="chart" id="chCf"></div>
-        <div class="legend"><span><i style="background:var(--pos)"></i>tu encaisses</span><span><i style="background:var(--neg)"></i>tu complètes</span></div>
+
+  <aside class="answer" id="answer" aria-live="polite">
+    <div class="card">
+      <div class="ans-k">Chaque mois, en moyenne <button class="qi" data-info="cf5" aria-label="Explication : cash-flow">i</button></div>
+      <div class="ans-v" id="aV"></div>
+      <p class="ans-s" id="aS"></p>
+      <div class="flow">
+        <div class="fr"><span>Entre</span><div class="track" id="trIn"></div><span id="vIn"></span></div>
+        <div class="fr"><span>Sort</span><div class="track" id="trOut"></div><span id="vOut"></span></div>
+        <div class="leg">
+          <span><b style="background:var(--c-loyer)"></b><button class="i" data-info="loyer">Loyer</button></span>
+          <span><b style="background:var(--c-credit)"></b><button class="i" data-info="mens">Crédit</button></span>
+          <span><b style="background:var(--c-charges)"></b><button class="i" data-info="opex">Charges</button></span>
+          <span><b style="background:var(--c-impot)"></b><button class="i" data-info="tax">Impôt</button></span>
+        </div>
       </div>
-      <div class="card">
-        <h3><button class="i" data-info="chartEq">Ce que tu possèdes</button></h3>
-        <p class="sub">Valeur du bien moins capital restant dû, fin de chaque année.</p>
-        <div class="chart" id="chEq"></div>
+      <div class="lines">
+        <button class="ln" data-info="mens"><span>Mensualité du crédit</span><span id="lMens"></span></button>
+        <button class="ln" data-info="endet"><span>Accord de la banque</span><span id="lEnd"></span></button>
+        <button class="ln" data-info="enrich"><span>Gain net après 20 ans</span><span id="lEnr"></span></button>
       </div>
-      <div class="card"><h3>Coût d'acquisition</h3><div class="rows" id="cost"></div></div>
-      <div class="card"><h3>Bilan à 20 ans</h3><div class="rows" id="bilan"></div></div>
-      <div class="card wide">
-        <h3>Tableau sur 20 ans</h3>
-        <p class="sub">Touche un en-tête pour savoir ce que contient la colonne.</p>
-        <div class="tw"><table id="tbl"><thead><tr>
-          <th><button class="i" data-info="annee">An</button></th><th><button class="i" data-info="enc">Loyers</button></th><th><button class="i" data-info="opex">Charges</button></th><th><button class="i" data-info="intAss">Intérêts + assur.</button></th><th><button class="i" data-info="princ">Capital remb.</button></th><th><button class="i" data-info="tax">Impôt</button></th><th><button class="i" data-info="cfan">Cash-flow / an</button></th><th><button class="i" data-info="crd">Capital restant</button></th><th><button class="i" data-info="valeur">Valeur bien</button></th>
-        </tr></thead><tbody></tbody></table></div>
-      </div>
+      <p class="tipline" id="aTip"></p>
     </div>
-  </div>
+  </aside>
 </div>
 
-<section id="villes" class="more gut">
-  <div class="ey2">Marché · octobre 2026</div>
-  <h2 class="sec">Les six pôles côte à côte</h2>
-  <p class="lead2">Prix de vente et loyers moyens des appartements au m² d'après MeilleursAgents. Chaque ligne refait toute la simulation avec ta surface, ton financement et ta fiscalité. Touche une ville pour la charger.</p>
-  <div class="card" style="margin-top:20px;padding:6px 6px 2px"><div class="tw"><table id="cmp"><thead><tr>
-    <th><button class="i" data-info="city">Ville</button></th>
-    <th><button class="i" data-info="prixm2">Prix / m²</button></th>
-    <th><button class="i" data-info="loyerm2">Loyer / m²</button></th>
-    <th><button class="i" data-info="prix">Prix du bien</button></th>
-    <th><button class="i" data-info="loyer">Loyer / mois</button></th>
-    <th><button class="i" data-info="rdtB">Rdt brut</button></th>
-    <th><button class="i" data-info="mens">Mensualité</button></th>
-    <th><button class="i" data-info="cf5">Cash-flow / mois</button></th>
-    <th><button class="i" data-info="apportBE">Apport pour CF ≥ 0</button></th>
-    <th><button class="i" data-info="endet">Endettement</button></th>
-  </tr></thead><tbody></tbody></table></div></div>
-</section>
+<div class="folds gut">
+  <details class="fold" id="fCmp">
+    <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span><span class="st"><b>Comparer les villes</b><span id="cmpSum"></span></span><span class="chev"></span></summary>
+    <div class="fbody">
+      <p class="q">Même prix, même financement : ce que donne chaque ville. Touche une ville pour la choisir.</p>
+      <div class="cmp" id="cmp"></div>
+    </div>
+  </details>
 
-<section id="lexique" class="more gut">
-  <div class="ey2">Comprendre</div>
-  <h2 class="sec">Lexique</h2>
-  <p class="lead2">Toutes les notions utilisées sur cette page.</p>
-  <div class="box lex-filter"><input id="lexq" type="search" placeholder="Chercher un terme : TMI, déficit, garantie…" aria-label="Chercher dans le lexique"></div>
-  <div class="lex" id="lex"></div>
-</section>
+  <details class="fold">
+    <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><span class="st"><b>Voir le détail sur 20 ans</b><span>Graphiques, coût d'achat, bilan, année par année</span></span><span class="chev"></span></summary>
+    <div class="fbody">
+      <p class="q" id="verdict"></p>
+      <div class="grid2">
+        <div class="inner"><h3><button class="i" data-info="chartCf">Cash-flow mensuel par année</button></h3><p class="s">Rouge : ce que tu ajoutes. Bleu : ce qu'il te reste.</p><div class="chart" id="chCf"></div></div>
+        <div class="inner"><h3><button class="i" data-info="chartEq">Ce que tu possèdes</button></h3><p class="s">Valeur du bien moins ce que tu dois encore.</p><div class="chart" id="chEq"></div></div>
+        <div class="inner"><h3>Coût d'achat</h3><div class="rows" id="cost"></div></div>
+        <div class="inner"><h3>Bilan à 20 ans</h3><div class="rows" id="bilan"></div></div>
+      </div>
+      <div class="tw"><table id="tbl"><thead><tr>
+        <th><button class="i" data-info="annee">An</button></th><th><button class="i" data-info="enc">Loyers</button></th><th><button class="i" data-info="opex">Charges</button></th><th><button class="i" data-info="intAss">Intérêts</button></th><th><button class="i" data-info="princ">Capital</button></th><th><button class="i" data-info="tax">Impôt</button></th><th><button class="i" data-info="cfan">Cash-flow</button></th><th><button class="i" data-info="crd">Reste dû</button></th><th><button class="i" data-info="valeur">Valeur</button></th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </details>
 
-<section id="hypotheses" class="more gut">
-  <div class="ey2">À savoir</div>
-  <h2 class="sec">Hypothèses et limites</h2>
-  <ul class="notes">
-    <li><b>Prix et loyers au m²</b> : moyennes MeilleursAgents au 1<sup>er</sup> octobre 2026 (septembre pour Sarrebourg), appartements tous états confondus. Un studio se loue plus cher au m² qu'un T3, un bien à rénover se vend moins cher. Vérifie sur <a href="https://app.dvf.etalab.gouv.fr/" target="_blank" rel="noopener">DVF</a> (ventes réelles) et sur les annonces du quartier.</li>
-    <li><b>Loyers</b> : la source ne dit pas s'ils sont hors charges. Ils peuvent être un peu optimistes.</li>
-    <li><b>Copropriété et taxe foncière</b> par ville : estimations, pas des données publiées. Demande les vrais montants au vendeur.</li>
-    <li><b>Associés</b> : le calcul suppose que tu portes 100 % des parts. Avec un autre associé, le résultat se partage selon les parts et chacun l'impose à sa tranche.</li>
-    <li><b>Déficit foncier</b> : report sans limite de 10 ans dans ce modèle ; l'économie d'impôt est plafonnée à l'impôt que tu paies déjà.</li>
-    <li><b>SCI à l'IS</b> : la sortie de l'argent en dividendes (flat tax de 30 %) n'est pas comptée dans les cash-flows.</li>
-    <li><b>DPE</b> : un logement classé G ne peut plus être loué depuis 2025, F à partir de 2028.</li>
-    <li>Outil de réflexion, pas un conseil fiscal personnalisé. Fais valider le montage SCI et la donation par un notaire.</li>
-  </ul>
-</section>
+  <details class="fold">
+    <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span><span class="st"><b>Réglages avancés</b><span>Frais, charges, fiscalité, prix au m²</span></span><span class="chev"></span></summary>
+    <div class="fbody" id="adv"></div>
+  </details>
 
-<footer class="gut">Prix : MeilleursAgents, pages ville de <a href="https://www.meilleursagents.com/prix-immobilier/strasbourg-67000/" target="_blank" rel="noopener">Strasbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/haguenau-67500/" target="_blank" rel="noopener">Haguenau</a>, <a href="https://www.meilleursagents.com/prix-immobilier/molsheim-67120/" target="_blank" rel="noopener">Molsheim</a>, <a href="https://www.meilleursagents.com/prix-immobilier/saverne-67700/" target="_blank" rel="noopener">Saverne</a>, <a href="https://www.meilleursagents.com/prix-immobilier/phalsbourg-57370/" target="_blank" rel="noopener">Phalsbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/sarrebourg-57400/" target="_blank" rel="noopener">Sarrebourg</a>, consultées le 14 octobre 2026.</footer>
+  <details class="fold">
+    <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span><span class="st"><b>Lexique</b><span>Toutes les notions expliquées</span></span><span class="chev"></span></summary>
+    <div class="fbody">
+      <div class="box lexq"><input id="lexq" type="search" placeholder="Chercher : TMI, déficit, garantie…" aria-label="Chercher dans le lexique"></div>
+      <div class="lex" id="lex"></div>
+    </div>
+  </details>
 
-<div class="dock" id="dock">
-  <div><div class="dl">Cash-flow / mois</div><div class="dv" id="dCf"></div></div>
-  <div><div class="dl">Mensualité</div><div class="dv" id="dMens" style="font-size:16px"></div></div>
-  <span class="status ds" id="dStatus"></span>
+  <details class="fold">
+    <summary><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg></span><span class="st"><b>Hypothèses et limites</b><span>D'où viennent les chiffres</span></span><span class="chev"></span></summary>
+    <div class="fbody"><ul class="notes">
+      <li><b>Prix et loyers au m²</b> : moyennes MeilleursAgents au 1<sup>er</sup> octobre 2026 (septembre pour Sarrebourg), appartements tous états confondus. Un studio se loue plus cher au m² qu'un T3, un bien à rénover se vend moins cher. Vérifie sur <a href="https://app.dvf.etalab.gouv.fr/" target="_blank" rel="noopener">DVF</a> et sur les annonces du quartier.</li>
+      <li><b>Loyers</b> : la source ne dit pas s'ils sont hors charges, ils peuvent être un peu optimistes.</li>
+      <li><b>Copropriété et taxe foncière</b> : estimations par ville, à remplacer par les montants de l'annonce.</li>
+      <li><b>Associés</b> : le calcul suppose que tu portes 100 % des parts de la SCI.</li>
+      <li><b>Déficit foncier</b> : report sans limite de 10 ans ; l'économie d'impôt est plafonnée à l'impôt que tu paies déjà.</li>
+      <li><b>SCI à l'IS</b> : la sortie de l'argent en dividendes (30 %) n'est pas comptée.</li>
+      <li><b>DPE</b> : un logement classé G ne peut plus être loué depuis 2025, F à partir de 2028.</li>
+      <li>Outil de réflexion, pas un conseil fiscal personnalisé. Fais valider le montage SCI et la donation par un notaire.</li>
+    </ul></div>
+  </details>
+</div>
+
+<footer class="gut">Prix : MeilleursAgents (<a href="https://www.meilleursagents.com/prix-immobilier/strasbourg-67000/" target="_blank" rel="noopener">Strasbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/haguenau-67500/" target="_blank" rel="noopener">Haguenau</a>, <a href="https://www.meilleursagents.com/prix-immobilier/molsheim-67120/" target="_blank" rel="noopener">Molsheim</a>, <a href="https://www.meilleursagents.com/prix-immobilier/saverne-67700/" target="_blank" rel="noopener">Saverne</a>, <a href="https://www.meilleursagents.com/prix-immobilier/phalsbourg-57370/" target="_blank" rel="noopener">Phalsbourg</a>, <a href="https://www.meilleursagents.com/prix-immobilier/sarrebourg-57400/" target="_blank" rel="noopener">Sarrebourg</a>), consultés le 14 octobre 2026.</footer>
+
+<div class="dock" id="dock" role="button" tabindex="0" aria-label="Voir la réponse">
+  <div><div class="dl">Chaque mois</div><div class="dv" id="dV"></div></div>
+  <div class="dm" id="dM"></div>
 </div>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -371,7 +373,6 @@ footer{padding-block:28px 120px;color:var(--ink-3);font-size:12.5px;border-top:1
 <div class="tip" id="tip" hidden></div>
 
 <script>
-/* ---------- Données de marché (MeilleursAgents, oct. 2026) ---------- */
 const CITIES = {
   strasbourg:{n:"Strasbourg",dep:"67",pm2:3740,pLo:2553,pHi:4899,lm2:15.5,lLo:11.2,lHi:25.2,date:"1er oct. 2026",cm2:30,tm2:14,
     note:"Grande ville étudiante et européenne, demande locative très forte. Prix les plus élevés, donc rendement le plus faible."},
@@ -387,52 +388,39 @@ const CITIES = {
     note:"Prix les plus bas de la sélection, rendement brut le plus élevé, mais marché moins liquide."}
 };
 const H = 20;
-let CITY = "saverne", REGIME = "ir";
 
-/* ---------- Icônes des groupes ---------- */
-const ICO = {
-  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/></svg>',
-  bank:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18L12 4zM5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></svg>',
-  key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M15 8l2 2"/></svg>',
-  tax:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M9 17 15 11M9.5 11.5h.01M14.5 16.5h.01"/></svg>'
-};
+/* ---------- État ---------- */
+const ST = {city:"saverne", budget:100000, apport:30000, duree:20, taux:3.8, revenu:1330, regime:"ir", custom:{}};
 
-/* ---------- Champs ---------- */
-const GROUPS = [
- {t:"L'essentiel",d:"Surface, prix, loyer, crédit",ico:"home",open:1,f:[
-  {id:"surface",label:"Surface",u:"m²",def:50,step:1,range:[15,150]},
-  {id:"prixm2",label:"Prix au m²",u:"€/m²",step:10,range:[800,6000],tag:"src"},
-  {id:"prix",label:"Prix d'achat",u:"€",ro:1},
-  {id:"loyer",label:"Loyer mensuel",u:"€",ro:1},
-  {id:"loyerm2",label:"Loyer au m²",u:"€/m²",step:.1,range:[5,30],tag:"src"},
-  {id:"apport",label:"Apport (donation)",u:"€",def:30000,step:1000,range:[0,150000]},
-  {id:"taux",label:"Taux du crédit",u:"%",def:3.8,step:.05,range:[1,7]},
-  {id:"duree",label:"Durée du crédit",u:"ans",def:20,step:1,range:[7,25]},
-  {id:"revenu",label:"Ton revenu net",u:"€ / mois",def:1330,step:10,range:[800,6000]}]},
- {t:"Frais d'achat et crédit",d:"Notaire, assurance, garantie",ico:"bank",f:[
+/* Réglages avancés : valeur vide = valeur automatique */
+const ADV = [
+ {t:"Prix du marché pour la ville choisie",f:[
+  {id:"prixm2",label:"Prix au m²",u:"€/m²",step:10,auto:1},
+  {id:"loyerm2",label:"Loyer au m²",u:"€/m²",step:.1,auto:1}]},
+ {t:"Frais d'achat et crédit",f:[
   {id:"travaux",label:"Travaux",u:"€",def:0,step:500},
   {id:"notaire",label:"Frais de notaire",u:"% prix",def:7.5,step:.1},
   {id:"assur",label:"Assurance emprunteur",u:"% / an",def:.30,step:.01},
   {id:"garantie",label:"Garantie (caution)",u:"% prêt",def:1.2,step:.1},
   {id:"dossier",label:"Frais de dossier",u:"€",def:500,step:50},
   {id:"creation",label:"Création SCI",u:"€",def:1500,step:100},
-  {id:"valo",label:"Revalorisation",u:"% / an",def:1,step:.1}]},
- {t:"Location et charges",d:"Vacance, copro, taxe foncière",ico:"key",f:[
+  {id:"valo",label:"Revalorisation du bien",u:"% / an",def:1,step:.1}]},
+ {t:"Location et charges",f:[
   {id:"vacance",label:"Vacance locative",u:"mois / an",def:.5,step:.25},
   {id:"indexation",label:"Hausse des loyers",u:"% / an",def:1.5,step:.1},
-  {id:"copro",label:"Charges de copro",u:"€ / an",step:50,tag:"est"},
+  {id:"copro",label:"Charges de copro",u:"€ / an",step:50,auto:1},
   {id:"recup",label:"Part refacturée",u:"%",def:50,step:5},
-  {id:"tf",label:"Taxe foncière",u:"€ / an",step:50,tag:"est"},
+  {id:"tf",label:"Taxe foncière",u:"€ / an",step:50,auto:1},
   {id:"inflation",label:"Hausse des charges",u:"% / an",def:2,step:.1},
   {id:"pno",label:"Assurance PNO",u:"€ / an",def:150,step:10},
   {id:"gestion",label:"Gestion agence",u:"% loyers",def:0,step:.5},
   {id:"gli",label:"Loyers impayés",u:"% loyers",def:0,step:.5},
   {id:"entretien",label:"Entretien",u:"€ / an",def:300,step:50},
   {id:"compta",label:"Compta SCI",u:"€ / an",def:400,step:50}]},
- {t:"Fiscalité",d:"SCI à l'IR ou à l'IS",ico:"tax",f:[
-  {id:"regime",type:"seg",full:1,label:"Régime de la SCI",opts:[["ir","SCI à l'IR"],["is","SCI à l'IS"]]},
+ {t:"Fiscalité",f:[
+  {id:"regime",type:"select",label:"Régime de la SCI",opts:[["ir","SCI à l'IR (location nue)"],["is","SCI à l'IS (amortissement)"]]},
   {id:"tmi",type:"select",label:"Ta tranche (TMI)",def:"11",opts:[["0","0 %"],["11","11 %"],["30","30 %"],["41","41 %"],["45","45 %"]],only:"ir"},
-  {id:"ps",label:"Prélèv. sociaux",u:"%",def:17.2,step:.1,only:"ir"},
+  {id:"ps",label:"Prélèvements sociaux",u:"%",def:17.2,step:.1,only:"ir"},
   {id:"irpaye",label:"Impôt payé hors immo",u:"€ / an",def:0,step:50,only:"ir"},
   {id:"plafond",label:"Plafond déficit",u:"€ / an",def:10700,step:100,only:"ir"},
   {id:"travauxded",type:"check",label:"Travaux déductibles l'année 1",def:true,only:"ir"},
@@ -441,11 +429,10 @@ const GROUPS = [
   {id:"isred",label:"IS taux réduit",u:"%",def:15,step:1,only:"is"},
   {id:"isnorm",label:"IS taux normal",u:"%",def:25,step:1,only:"is"}]}
 ];
-const ALL = GROUPS.flatMap(g=>g.f);
+const ADVF = ADV.flatMap(g=>g.f);
 
-/* ---------- Formats ---------- */
 const $=id=>document.getElementById(id);
-const eur=(v,d=0)=>(Math.round(v*10**d)/10**d).toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d})+" €";
+const eur=(v,d=0)=>(Math.round(v*10**d)/10**d).toLocaleString("fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d})+"\u00a0€";
 const sgn=v=>(Math.round(v)>0?"+":Math.round(v)<0?"−":"")+eur(Math.abs(v));
 const pct=v=>v.toLocaleString("fr-FR",{maximumFractionDigits:1})+" %";
 const num=(v,d=1)=>v.toLocaleString("fr-FR",{maximumFractionDigits:d});
@@ -532,36 +519,16 @@ const INFO = {
  valeur:{g:"res",t:"Valeur du bien",b:"<p>Valeur estimée du bien en fin d'année avec la revalorisation choisie.</p>"}
 };
 
-/* ---------- Formulaire ---------- */
-const panel=$("panel");
-GROUPS.forEach(g=>{
-  const d=document.createElement("details"); d.className="grp"; d.open=!!g.open;
-  let h=`<summary><span class="ico">${ICO[g.ico]}</span><span><span class="t">${g.t}</span><br><span class="d">${g.d}</span></span></summary><div class="fields">`;
-  for(const f of g.f){
-    const tag=f.tag==="src"?`<span class="tag src">marché</span>`:f.tag==="est"?`<span class="tag est">estim.</span>`:"";
-    const lab=`<span class="lab"><button class="i" data-info="${f.id}" type="button">${f.label}</button>${tag}</span>`;
-    const only=f.only?` only-${f.only}`:"";
-    if(f.type==="check"){ h+=`<label class="chk${only}"><input id="${f.id}" type="checkbox"><button class="i" data-info="${f.id}" type="button">${f.label}</button></label>`; continue; }
-    if(f.type==="seg"){ h+=`<div class="f full">${lab}<div class="seg" role="group">${f.opts.map(([v,t])=>`<button type="button" data-reg="${v}" aria-pressed="false">${t}</button>`).join("")}</div></div>`; continue; }
-    if(f.type==="select"){ h+=`<div class="f${only}">${lab}<div class="box"><select id="${f.id}">${f.opts.map(([v,t])=>`<option value="${v}">${t}</option>`).join("")}</select></div></div>`; continue; }
-    if(f.ro){ h+=`<div class="f${only}">${lab}<div class="box ro"><input id="${f.id}" type="text" readonly tabindex="-1"><span class="u">${f.u}</span></div></div>`; continue; }
-    const box=`<div class="box"><input id="${f.id}" type="number" step="${f.step}" inputmode="decimal"><span class="u">${f.u}</span></div>`;
-    if(f.range){ h+=`<div class="f slider${only}">${lab}<div class="srow"><input type="range" id="${f.id}_r" min="${f.range[0]}" max="${f.range[1]}" step="${f.step}" aria-label="${f.label}">${box}</div></div>`; continue; }
-    h+=`<div class="f${only}">${lab}${box}</div>`;
-  }
-  d.innerHTML=h+"</div>"; panel.appendChild(d);
-});
-for(const f of ALL){ if(f.def===undefined) continue; const el=$(f.id); if(!el) continue; if(f.type==="check") el.checked=f.def; else el.value=f.def; }
-const fillRange=r=>{ const p=(r.value-r.min)/(r.max-r.min)*100; r.style.setProperty("--p",Math.max(0,Math.min(100,p))+"%"); };
-function syncRanges(){ ALL.filter(f=>f.range).forEach(f=>{ const r=$(f.id+"_r"); r.value=$(f.id).value; fillRange(r); }); }
 
-function loadCity(){ const c=CITIES[CITY], s=+$("surface").value||50;
-  $("prixm2").value=c.pm2; $("loyerm2").value=c.lm2;
-  $("copro").value=Math.round(c.cm2*s/10)*10; $("tf").value=Math.round(c.tm2*s/10)*10; }
-function read(){ const p={city:CITY,regime:REGIME};
-  for(const f of ALL){ const el=$(f.id); if(!el||f.ro) continue; p[f.id]=f.type==="check"?el.checked:f.type==="select"?el.value:(parseFloat(el.value)||0); }
-  p.tmi=+p.tmi; p.prix=Math.round(p.surface*p.prixm2); p.loyer=Math.round(p.surface*p.loyerm2); return p; }
+INFO.city.b="<p>Le pôle géographique où tu achètes. Chaque ville a son prix moyen au m² et son loyer moyen au m² (MeilleursAgents, octobre 2026). Pour un même prix, tu achètes donc plus ou moins de m², et le loyer change en conséquence.</p>";
+INFO.prix={g:"bien",t:"Prix du bien",b:"<p>Le prix payé au vendeur, hors frais de notaire. C'est ton point de départ : avec le prix au m² de la ville, il donne la surface que tu peux acheter, et donc le loyer que tu peux espérer.</p>",
+  live:p=>`<code>${eur(p.prix)} ÷ ${num(p.prixm2,0)} €/m² = ${num(p.surface,0)} m²</code>`};
+INFO.surface={g:"bien",t:"Surface à ce prix",b:"<p>La surface moyenne que ce prix permet d'acheter dans la ville, au prix du marché. Un bien à rénover ou mal placé donnera plus de m², un bien neuf ou en hyper-centre moins.</p><p>Repère : 25 à 30 m² pour un studio, 40 à 50 m² pour un T2, 60 à 70 m² pour un T3.</p>",
+  live:p=>`<code>${eur(p.prix)} ÷ ${num(p.prixm2,0)} €/m² = ${num(p.surface,0)} m²</code>`};
+INFO.loyer.live=p=>`<code>${num(p.surface,0)} m² × ${num(p.loyerm2)} €/m² = ${eur(p.loyer)} / mois</code>`;
+INFO.endet.t="Accord de la banque (taux d'endettement)";
 
+/* ---------- Calcul ---------- */
 /* ---------- Calcul ---------- */
 function sim(p){
   const notaire=p.prix*p.notaire/100;
@@ -606,8 +573,20 @@ function sim(p){
 function solve(p,key,lo,hi){ const f=v=>sim({...p,[key]:v}).cf5;
   if(f(lo)>=0) return lo; if(f(hi)<0) return null;
   for(let i=0;i<40;i++){ const m=(lo+hi)/2; if(f(m)>=0) hi=m; else lo=m; } return hi; }
-function cityParams(p,k){ const c=CITIES[k]; return {...p,city:k,prixm2:c.pm2,loyerm2:c.lm2,prix:Math.round(p.surface*c.pm2),loyer:Math.round(p.surface*c.lm2),
-  copro:Math.round(c.cm2*p.surface/10)*10,tf:Math.round(c.tm2*p.surface/10)*10}; }
+
+function params(k=ST.city, budget=ST.budget){
+  const c=CITIES[k], p={city:k, regime:ST.regime, apport:ST.apport, duree:ST.duree, taux:ST.taux, revenu:ST.revenu};
+  for(const f of ADVF){ if(f.id==="regime") continue; const cu=ST.custom[f.id];
+    p[f.id]= cu!==undefined&&cu!=="" ? (f.type==="check"?cu:(f.type==="select"?cu:+cu)) : f.def; }
+  p.tmi=+p.tmi;
+  const own = k===ST.city;
+  p.prixm2 = own&&ST.custom.prixm2 ? +ST.custom.prixm2 : c.pm2;
+  p.loyerm2= own&&ST.custom.loyerm2? +ST.custom.loyerm2: c.lm2;
+  p.prix=budget; p.surface=budget/p.prixm2; p.loyer=Math.round(p.surface*p.loyerm2);
+  p.copro = own&&ST.custom.copro ? +ST.custom.copro : Math.round(c.cm2*p.surface/10)*10;
+  p.tf    = own&&ST.custom.tf    ? +ST.custom.tf    : Math.round(c.tm2*p.surface/10)*10;
+  return p;
+}
 
 /* ---------- Panneau d'explication ---------- */
 let P,S,openKey=null,lastFocus=null; const drawer=$("drawer"), scrim=$("scrim");
@@ -655,39 +634,54 @@ function lineChart(el,vals){ const W=560,Hh=240,L=46,R=12,T=10,B=24;
   hit.addEventListener("mousemove",mv); hit.addEventListener("click",mv);
   hit.addEventListener("mouseleave",()=>{hideTip(); xh.setAttribute("visibility","hidden"); xd.setAttribute("visibility","hidden");}); }
 
-/* ---------- Rendu ---------- */
-function statusHtml(cf){ return cf>=0?`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg> S'autofinance`:`Effort de ${eur(-cf)} / mois`; }
-function render(){
-  const p=read(), s=sim(p); P=p; S=s;
-  $("prix").value=eur(p.prix).replace(" €",""); $("loyer").value=eur(p.loyer).replace(" €","");
-  document.querySelectorAll(".only-ir").forEach(e=>e.hidden=p.regime!=="ir");
-  document.querySelectorAll(".only-is").forEach(e=>e.hidden=p.regime!=="is");
-  document.querySelectorAll("[data-reg]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.reg===p.regime));
-  syncRanges();
+/* ---------- Construction ---------- */
+$("cities").innerHTML=Object.entries(CITIES).map(([k,c])=>`<button class="city" data-city="${k}" aria-pressed="false"><b>${c.n}</b><span>Achat ${num(c.pm2,0)} €/m²</span><span>Loyer ${num(c.lm2)} €/m²</span></button>`).join("");
+$("durees").innerHTML=[15,20,25].map(d=>`<button class="pill" data-duree="${d}" aria-pressed="false">${d} ans</button>`).join("");
+$("adv").innerHTML=ADV.map(g=>`<div class="subt">${g.t}</div><div class="sub">${g.f.map(f=>{
+  const lab=`<span class="flab"><button class="i" data-info="${f.id}" type="button">${f.label}</button></span>`, only=f.only?` data-only="${f.only}"`:"";
+  if(f.type==="check") return `<label class="chk"${only}><input id="a_${f.id}" type="checkbox" ${f.def?"checked":""}><button class="i" data-info="${f.id}" type="button">${f.label}</button></label>`;
+  if(f.type==="select") return `<div class="f"${only}>${lab}<div class="box"><select id="a_${f.id}">${f.opts.map(([v,t])=>`<option value="${v}" ${String(f.def)===v?"selected":""}>${t}</option>`).join("")}</select></div></div>`;
+  return `<div class="f"${only}>${lab}<div class="box"><input id="a_${f.id}" type="number" step="${f.step}" inputmode="decimal" ${f.auto?'placeholder="auto"':`value="${f.def}"`}><span class="u">${f.u}</span></div></div>`;
+}).join("")}</div>`).join("")+`<button class="next" id="resetAdv" type="button" style="background:var(--field);color:var(--ink)">Revenir aux valeurs par défaut</button>`;
 
-  // Bandeau
-  $("kCf").innerHTML=`${sgn(s.cf5)}<small>/ mois</small>`;
-  const st=$("kStatus"); st.className="status "+(s.cf5>=0?"ok":"ko"); st.innerHTML=statusHtml(s.cf5);
+const fill=r=>r.style.setProperty("--p",((r.value-r.min)/(r.max-r.min)*100)+"%");
+
+/* ---------- Rendu ---------- */
+function render(){
+  const p=params(), s=sim(p); P=p; S=s;
+  const c=CITIES[p.city];
+  // étapes
+  document.querySelectorAll("[data-city]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.city===p.city));
+  document.querySelectorAll("[data-duree]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.duree===ST.duree));
+  for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=ST[id]; fill(r); }
+  $("oPrix").textContent=eur(p.prix); $("oApport").textContent=eur(ST.apport); $("oTaux").textContent=pct(ST.taux); $("oRev").textContent=eur(ST.revenu)+" / mois";
+  $("fSurf").textContent=`≈ ${num(p.surface,0)} m²`; $("fLoyer").textContent=`${eur(p.loyer)} / mois`; $("fNot").textContent=eur(s.notaire);
+  $("sum1").textContent=`${c.n} · ${num(p.prixm2,0)} €/m²`;
+  $("sum2").textContent=`${eur(p.prix)} · ≈ ${num(p.surface,0)} m² · loyer ${eur(p.loyer)}`;
+  $("sum3").textContent=`${eur(ST.apport)} d'apport · ${ST.duree} ans à ${pct(ST.taux)}`;
+  document.querySelectorAll("[data-only]").forEach(e=>e.hidden=e.dataset.only!==p.regime);
+  $("a_prixm2").placeholder=`auto : ${num(c.pm2,0)}`; $("a_loyerm2").placeholder=`auto : ${num(c.lm2)}`;
+  $("a_copro").placeholder=`auto : ${num(p.copro,0)}`; $("a_tf").placeholder=`auto : ${num(p.tf,0)}`;
+
+  // réponse
+  const ok=s.cf5>=0;
+  $("aV").className="ans-v "+(ok?"ok":"ko"); $("aV").textContent=sgn(s.cf5);
+  $("aS").innerHTML= ok?`Le loyer paie tout, et il te reste <b>${eur(s.cf5)}</b> par mois.`:`Le loyer ne couvre pas tout : tu ajoutes <b>${eur(-s.cf5)}</b> de ta poche chaque mois.`;
   const y1=s.years[0], inM=y1.enc/12, cr=(y1.intAss+y1.princ)/12, ch=y1.opex/12, im=Math.max(0,y1.tax)/12, out=cr+ch+im, mx=Math.max(inM,out,1);
   $("trIn").innerHTML=`<i style="width:${inM/mx*100}%;background:var(--c-loyer)"></i>`;
-  $("trOut").innerHTML=[[cr,"--c-credit"],[ch,"--c-charges"],[im,"--c-impot"]].filter(x=>x[0]>0.5).map(([v,c])=>`<i style="width:calc(${v/mx*100}% - 2px);background:var(${c})"></i>`).join("");
+  $("trOut").innerHTML=[[cr,"--c-credit"],[ch,"--c-charges"],[im,"--c-impot"]].filter(x=>x[0]>.5).map(([v,c])=>`<i style="width:calc(${v/mx*100}% - 2px);background:var(${c})"></i>`).join("");
   $("vIn").textContent=eur(inM); $("vOut").textContent=eur(out);
-  $("kMens").textContent=eur(s.mens+s.assM);
-  $("kRdt").textContent=pct(s.rdtB);
-  const ke=$("kEnd"); ke.textContent=pct(s.endet); ke.className="v "+(s.endet<=35?"okc":"koc");
-  $("dCf").textContent=sgn(s.cf5); $("dMens").textContent=eur(s.mens+s.assM);
-  const ds=$("dStatus"); ds.className="status ds "+(s.cf5>=0?"ok":"ko"); ds.innerHTML=s.cf5>=0?"Autofinancé":"À compléter";
+  $("lMens").textContent=eur(s.mens+s.assM);
+  $("lEnd").innerHTML= s.endet<=35?`<span class="ok">Probable · ${pct(s.endet)}</span>`:`<span class="ko">Difficile · ${pct(s.endet)}</span>`;
+  $("lEnr").innerHTML=`<span class="${s.enrich>=0?"ok":"ko"}">${sgn(s.enrich)}</span>`;
+  if(ok) $("aTip").innerHTML=`Bonne nouvelle : ce bien s'autofinance. Vérifie quand même la copro et la taxe foncière réelles dans l'annonce.`;
+  else { const aBE=solve(p,"apport",0,s.besoin0), lBE=solve(p,"loyer",0,8000);
+    $("aTip").innerHTML= aBE===null?`Même sans crédit, les charges dépassent le loyer : cherche un loyer plus élevé ou des charges plus faibles.`
+      :`Pour équilibrer : ${I("apportBE","un apport de "+eur(Math.ceil(aBE/500)*500))}${lBE!==null?`, ou ${I("loyerBE","un loyer de "+eur(Math.ceil(lBE/5)*5))}`:""}${ST.duree<25?", ou un crédit plus long":""}.`; }
+  $("dV").textContent=sgn(s.cf5); $("dV").style.color=ok?"#5fd39a":"#ff8a8a"; $("dM").textContent=ok?"Le loyer paie tout":"À compléter de ta poche";
 
-  // Verdict
-  const aBE=solve(p,"apport",0,s.besoin0), lBE=solve(p,"loyer",0,8000), c=CITIES[p.city];
-  let v=`<b>${c.n}</b>, ${p.surface} m² à ${num(p.prixm2,0)} €/m², loyer ${eur(p.loyer)} : `;
-  v+= s.cf5>=0?`le bien ${I("cf5","s'autofinance")}, il te reste ${I("cf5",sgn(s.cf5))} par mois en moyenne sur 5 ans.`
-              :`le bien ne s'autofinance pas, il faut ajouter ${I("cf5",eur(-s.cf5))} par mois en moyenne sur 5 ans.`;
-  if(s.cf5<0){ v+= aBE===null?` Même sans crédit, les charges dépassent le loyer.`:` Pour l'équilibrer, il faudrait un ${I("apportBE","apport d'environ "+eur(Math.ceil(aBE/500)*500))}`;
-    if(aBE!==null&&lBE!==null) v+=` ou un ${I("loyerBE","loyer d'au moins "+eur(Math.ceil(lBE/5)*5))} par mois (${num(Math.ceil(lBE/5)*5/p.surface)} €/m²).`; else if(aBE!==null) v+="."; }
-  v+=` Sur 20 ans, ton ${I("enrich","enrichissement net")} estimé est de ${I("enrich",sgn(s.enrich))}, apport déduit.`;
-  $("verdict").innerHTML=v;
-
+  // détail
+  $("verdict").innerHTML=`${c.n}, bien à ${eur(p.prix)} (≈ ${num(p.surface,0)} m²), loyer ${eur(p.loyer)}. Rendement brut ${I("rdt",pct(s.rdtB))}, prêt de ${I("loan",eur(s.loan))}.`;
   barChart($("chCf"),s.years.map(x=>x.cf/12));
   lineChart($("chEq"),s.years.map(x=>x.val-x.crd));
   const row=(k,a,b,cls="")=>`<span class="${cls}">${I(k,a)}</span><span class="${cls}">${b}</span>`;
@@ -696,49 +690,44 @@ function render(){
     +row("coutTotal","Coût total",eur(s.coutTotal),"tot")+row("apport","Apport","− "+eur(Math.min(p.apport,s.coutTotal)))
     +row("loan","Emprunté",eur(s.loan),"tot")+row("interets","Coût du crédit",eur(s.interets));
   const l=s.years[H-1];
-  $("bilan").innerHTML=row("valeur","Valeur estimée du bien",eur(l.val))+row("crd","Capital restant dû","− "+eur(l.crd))+row("taxPV","Impôt plus-value","− "+eur(s.taxPV))
-    +row("cum","Cash-flows cumulés",sgn(s.cum))+row("apport","Apport de départ","− "+eur(p.apport))+row("enrich","Enrichissement net",sgn(s.enrich),"tot");
-  $("tbl").querySelector("tbody").innerHTML=s.years.map(x=>`<tr><td>${x.y}</td><td>${eur(x.enc)}</td><td>${eur(x.opex)}</td><td>${eur(x.intAss)}</td><td>${eur(x.princ)}</td><td>${x.tax<-.5?"− "+eur(-x.tax)+" éco.":eur(Math.max(0,x.tax))}</td><td class="${x.cf>=0?"ok":"ko"}">${sgn(x.cf)}</td><td>${eur(x.crd)}</td><td>${eur(x.val)}</td></tr>`).join("");
+  $("bilan").innerHTML=row("valeur","Valeur du bien",eur(l.val))+row("crd","Reste dû","− "+eur(l.crd))+row("taxPV","Impôt plus-value","− "+eur(s.taxPV))
+    +row("cum","Cash-flows cumulés",sgn(s.cum))+row("apport","Apport de départ","− "+eur(p.apport))+row("enrich","Gain net",sgn(s.enrich),"tot");
+  $("tbl").querySelector("tbody").innerHTML=s.years.map(x=>`<tr><td>${x.y}</td><td>${eur(x.enc)}</td><td>${eur(x.opex)}</td><td>${eur(x.intAss)}</td><td>${eur(x.princ)}</td><td>${x.tax<-.5?"− "+eur(-x.tax):eur(Math.max(0,x.tax))}</td><td class="${x.cf>=0?"ok":"ko"}">${sgn(x.cf)}</td><td>${eur(x.crd)}</td><td>${eur(x.val)}</td></tr>`).join("");
 
-  // Villes
-  const res=Object.keys(CITIES).map(k=>{ const q=cityParams(p,k), r=sim(q); return {k,q,r,a:solve(q,"apport",0,r.besoin0)}; });
-  $("chips").innerHTML=res.map(({k,r})=>{ const c=CITIES[k]; return `<button class="chip" data-k="${k}" aria-pressed="${k===p.city}">
-    <span class="nm">${c.n}<em>${c.dep}</em></span>
-    <span class="kv"><span>Achat</span><b>${num(c.pm2,0)} €/m²</b></span>
-    <span class="kv"><span>Loyer</span><b>${num(c.lm2)} €/m²</b></span>
-    <span class="cf ${r.cf5>=0?"ok":"ko"}"><span class="dot" style="background:${r.cf5>=0?"var(--good)":"var(--neg)"}"></span>${sgn(r.cf5)} / mois</span></button>`; }).join("");
-  const maxP=Math.max(...Object.values(CITIES).map(c=>c.pm2)), maxL=Math.max(...Object.values(CITIES).map(c=>c.lm2));
-  $("cmp").querySelector("tbody").innerHTML=res.map(({k,q,r,a})=>{ const c=CITIES[k];
-    const at=a===null?"impossible":(a<=0?"0 €":eur(Math.ceil(a/500)*500));
-    return `<tr class="city ${k===p.city?"sel":""}" data-k="${k}" tabindex="0"><td class="nm">${c.n}<span class="rng">${c.dep==="57"?"Moselle":"Bas-Rhin"} · ${c.date}</span></td>
-      <td><span class="bar" style="width:${Math.round(c.pm2/maxP*50)}px;background:var(--pos)"></span>${num(c.pm2,0)} €<span class="rng">${num(c.pLo,0)} à ${num(c.pHi,0)}</span></td>
-      <td><span class="bar" style="width:${Math.round(c.lm2/maxL*50)}px;background:var(--c-loyer)"></span>${num(c.lm2)} €<span class="rng">${num(c.lLo)} à ${num(c.lHi)}</span></td>
-      <td>${eur(q.prix)}</td><td>${eur(q.loyer)}</td><td>${pct(r.rdtB)}</td><td>${eur(r.mens+r.assM)}</td>
-      <td class="${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}</td><td>${at}</td><td class="${r.endet<=35?"ok":"ko"}">${pct(r.endet)}</td></tr>`; }).join("");
+  // comparaison à prix égal
+  const res=Object.keys(CITIES).map(k=>{ const q=params(k), r=sim(q); return {k,q,r}; }).sort((a,b)=>b.r.cf5-a.r.cf5);
+  $("cmpSum").textContent=`Pour un bien à ${eur(p.prix)} : la meilleure est ${CITIES[res[0].k].n}`;
+  $("cmp").innerHTML=res.map(({k,q,r},i)=>`<button class="crow ${k===p.city?"sel":""}" data-pick="${k}">
+     <span><b>${CITIES[k].n}</b>${i===0?'<span class="rank">la plus rentable</span>':""}</span>
+     <span class="d">≈ ${num(q.surface,0)} m² · loyer ${eur(q.loyer)} · rendement ${pct(r.rdtB)}</span>
+     <span class="cf ${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}<small>par mois</small></span></button>`).join("");
   fillLive();
 }
-function pickCity(k,scroll){ CITY=k; loadCity(); render(); if(scroll) document.getElementById("simuler").scrollIntoView({behavior:"smooth"}); }
-document.addEventListener("click",e=>{ const ch=e.target.closest(".chip"); if(ch) return pickCity(ch.dataset.k,false);
-  const tr=e.target.closest("#cmp tr.city"); if(tr) return pickCity(tr.dataset.k,true);
-  const rg=e.target.closest("[data-reg]"); if(rg){ REGIME=rg.dataset.reg; render(); } });
-document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("#cmp tr.city"); if(tr&&e.key==="Enter") pickCity(tr.dataset.k,true); });
-
-/* ---------- Lexique ---------- */
-function renderLex(q=""){ q=q.trim().toLowerCase(); let h="";
-  for(const [g,gn] of Object.entries(G)){ const items=Object.values(INFO).filter(it=>it.g===g&&(!q||(it.t+it.b).toLowerCase().includes(q)));
-    if(!items.length) continue; h+=`<div class="lexg">${gn}</div>`+items.map(it=>`<div class="card"><h3>${it.t}</h3>${it.b}</div>`).join(""); }
-  $("lex").innerHTML=h||`<p class="lead2">Aucun terme ne correspond à « ${q.replace(/[<>&]/g,"")} ».</p>`; }
-$("lexq").addEventListener("input",e=>renderLex(e.target.value));
 
 /* ---------- Événements ---------- */
-loadCity(); render(); renderLex();
-$("surface").addEventListener("input",()=>{ const c=CITIES[CITY],s=+$("surface").value||0; $("copro").value=Math.round(c.cm2*s/10)*10; $("tf").value=Math.round(c.tm2*s/10)*10; });
-panel.querySelectorAll("input,select").forEach(el=>{
-  if(el.type==="range") el.addEventListener("input",()=>{ const id=el.id.slice(0,-2); $(id).value=el.value; $(id).dispatchEvent(new Event("input")); });
-  else el.addEventListener("input",render); });
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-city]"); if(c){ ST.city=c.dataset.city; delete ST.custom.prixm2; delete ST.custom.loyerm2; delete ST.custom.copro; delete ST.custom.tf; ["prixm2","loyerm2","copro","tf"].forEach(id=>$("a_"+id).value=""); render(); return; }
+  const d=e.target.closest("[data-duree]"); if(d){ ST.duree=+d.dataset.duree; render(); return; }
+  const pk=e.target.closest("[data-pick]"); if(pk){ ST.city=pk.dataset.pick; ["prixm2","loyerm2","copro","tf"].forEach(id=>{delete ST.custom[id]; $("a_"+id).value="";}); render(); $("answer").scrollIntoView({behavior:"smooth",block:"start"}); return; }
+  const g=e.target.closest("[data-go]"); if(g){ const t=$(g.dataset.go); if(t.tagName==="DETAILS") t.open=true; t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+});
+for(const id of ["budget","apport","taux","revenu"]) $(id).addEventListener("input",e=>{ ST[id]=+e.target.value; render(); });
+ADVF.forEach(f=>{ const el=$("a_"+f.id); el.addEventListener(f.type==="check"||f.type==="select"?"change":"input",()=>{
+  const v=f.type==="check"?el.checked:el.value; if(f.id==="regime") ST.regime=v; else ST.custom[f.id]=v; render(); }); });
+$("resetAdv").addEventListener("click",()=>{ ST.custom={}; ST.regime="ir"; ADVF.forEach(f=>{ const el=$("a_"+f.id);
+  if(f.type==="check") el.checked=f.def; else if(f.type==="select") el.value=f.id==="regime"?"ir":f.def; else el.value=f.auto?"":f.def; }); render(); });
+
+function renderLex(q=""){ q=q.trim().toLowerCase(); let h="";
+  for(const [g,gn] of Object.entries(G)){ const items=Object.values(INFO).filter(it=>it.g===g&&(!q||(it.t+it.b).toLowerCase().includes(q)));
+    if(!items.length) continue; h+=`<div class="lexg">${gn}</div>`+items.map(it=>`<div class="inner"><h3>${it.t}</h3>${it.b}</div>`).join(""); }
+  $("lex").innerHTML=h||`<p class="q">Aucun terme ne correspond à « ${q.replace(/[<>&]/g,"")} ».</p>`; }
+$("lexq").addEventListener("input",e=>renderLex(e.target.value));
+
+render(); renderLex();
 const dock=$("dock");
-new IntersectionObserver(([e])=>dock.classList.toggle("show",!e.isIntersecting&&e.boundingClientRect.top<0)).observe($("result"));
-dock.addEventListener("click",()=>$("top").scrollIntoView({behavior:"smooth"}));
+new IntersectionObserver(([e])=>dock.classList.toggle("show",!e.isIntersecting)).observe($("answer"));
+const goAns=()=>$("answer").scrollIntoView({behavior:"smooth",block:"start"});
+dock.addEventListener("click",goAns); dock.addEventListener("keydown",e=>{ if(e.key==="Enter") goAns(); });
 </script>
 </body>
 </html>
