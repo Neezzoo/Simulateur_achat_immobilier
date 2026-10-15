@@ -466,6 +466,9 @@ const ADV = [
   {id:"loyerm2",label:"Loyer au m² (nu, ancien)",u:"€/m²",step:.1,auto:1},
   {id:"surcoutNeuf",label:"Surcoût du neuf",u:"% prix",def:30,step:1},
   {id:"loyerNeuf",label:"Loyer du neuf en plus",u:"%",def:8,step:1},
+  {id:"surfRef",label:"Surface type de la moyenne",u:"m²",def:40,step:1},
+  {id:"effetLoyer",label:"Effet de la surface sur le loyer",u:"exposant",def:.4,step:.05},
+  {id:"effetPrix",label:"Effet de la surface sur le prix",u:"exposant",def:.1,step:.05},
   {id:"loyerMeuble",label:"Loyer meublé en plus",u:"%",def:15,step:1}]},
  {t:"Frais d'achat et crédit",f:[
   {id:"fraisAgence",label:"Frais d'agence à l'achat",u:"% prix",def:5,step:.5},
@@ -534,7 +537,7 @@ const INFO = {
  dossier:{g:"fin",t:"Frais de dossier",b:"<p>Frais facturés par la banque pour monter le prêt, souvent 500 à 1 000 €, négociables. Déductibles des loyers la première année à l'IR.</p>"},
  creation:{g:"fin",t:"Création de la société",b:"<p>Rédaction des statuts (en ligne ou par un notaire), annonce légale et immatriculation : de 300 € en ligne à 2 000 € chez un notaire. Par défaut 1 500 € pour une SCI, 1 200 € pour une SARL de famille (statuts plus l'option pour l'IR), 0 € en LMNP puisqu'il n'y a pas de société.</p>"},
  revenu:{g:"fin",t:"Ton revenu net",b:"<p>Ton salaire net mensuel avant impôt. La banque s'en sert pour calculer ton taux d'endettement.</p>"},
- loyerm2:{g:"mar",t:"Loyer au m²",b:"<p>Loyer mensuel moyen au m² des appartements dans la ville, selon MeilleursAgents. La source ne dit pas si les charges sont incluses : retire 1 à 2 €/m² pour un loyer strictement hors charges. Les petites surfaces se louent plus cher au m².</p>",
+ loyerm2:{g:"mar",t:"Loyer au m²",b:"<p>Loyer mensuel moyen au m² des appartements dans la ville, selon MeilleursAgents. La source ne dit pas si les charges sont incluses : retire 1 à 2 €/m² pour un loyer strictement hors charges. Ce loyer moyen correspond à environ 40 m² : le simulateur l'augmente pour les petites surfaces et le baisse pour les grandes (voir les Réglages avancés).</p>",
    live:p=>{const c=CITIES[p.city];return `${c.n} au ${c.date} : moyenne <b>${num(c.lm2)} €/m²</b>, fourchette ${num(c.lLo)} à ${num(c.lHi)} €/m².`;}},
  loyer:{g:"loc",t:"Loyer mensuel",b:"<p>Loyer que paie le locataire chaque mois, calculé à partir de la surface et du loyer au m².</p>",
    live:p=>`<code>${p.surface} m² × ${num(p.loyerm2)} €/m² = ${eur(p.loyer)} / mois</code>`},
@@ -597,7 +600,16 @@ INFO.prix={g:"bien",t:"Prix du bien",b:"<p>Le prix payé au vendeur, hors frais 
   live:p=>`<code>${eur(p.prix)} ÷ ${num(p.prixm2,0)} €/m² = ${num(p.surface,0)} m²</code>`};
 INFO.surface={g:"bien",t:"Surface à ce prix",b:"<p>La surface moyenne que ce prix permet d'acheter dans la ville, au prix du marché. Un bien à rénover ou mal placé donnera plus de m², un bien neuf ou en hyper-centre moins.</p><p>Repère : 25 à 30 m² pour un studio, 40 à 50 m² pour un T2, 60 à 70 m² pour un T3.</p>",
   live:p=>`<code>${eur(p.prix)} ÷ ${num(p.prixm2,0)} €/m² = ${num(p.surface,0)} m²</code>`};
-INFO.loyer.live=p=>`<code>${num(p.surface,0)} m² × ${num(p.loyerm2)} €/m² = ${eur(p.loyer)} / mois</code>`;
+INFO.loyer.b="<p>Loyer hors charges que paie le locataire chaque mois. Il part du loyer moyen au m² de la ville, puis il est ajusté selon la surface : un studio se loue bien plus cher au m² qu'un T3. Touche « Loyer au m² » pour voir comment.</p>";
+INFO.loyer.live=p=>p.fLoyer?`Loyer forcé : ${eur(p.loyer)}, soit ${num(p.loyerm2)} €/m².`:`<code>${num(p.surface,0)} m² × ${num(p.loyerm2)} €/m² = ${eur(p.loyer)} / mois</code><br>dont ${num(p.loyerMoy)} €/m² en moyenne × ${num(p.fLoy,2)} pour une surface de ${num(p.surface,0)} m².`;
+INFO.surface.live=p=>p.fSurf?`Surface forcée : ${num(p.surface,0)} m².`:`<code>${eur(p.prix)} ÷ ${num(p.prixm2,0)} €/m² = ${num(p.surface,0)} m²</code><br>Le prix au m² tient compte de la surface : les petites surfaces se vendent un peu plus cher au m².`;
+Object.assign(INFO,{
+ surfRef:{g:"mar",t:"Surface type de la moyenne",b:"<p>Les loyers et prix moyens au m² d'une ville correspondent à peu près à un logement de cette taille (environ 40 m², un petit T2). En dessous, le m² coûte plus cher ; au-dessus, moins cher.</p>"},
+ effetLoyer:{g:"mar",t:"Effet de la surface sur le loyer",b:"<p>Plus un logement est petit, plus son loyer au m² est élevé : la cuisine et la salle de bain coûtent pareil, et la demande des étudiants et jeunes actifs est forte. Le simulateur applique <code>loyer au m² = moyenne × (40 ÷ surface) ^ 0,4</code>.</p><p>Exemple à Strasbourg (15,5 €/m² en moyenne) : environ 21 €/m² pour un studio de 20 m², 15,5 €/m² pour 40 m², 12,5 €/m² pour 65 m² et 11,5 €/m² pour 85 m². Ça colle aux fourchettes publiées par SeLoger pour la ville (19 à 22 € en studio, 11 € en T4).</p><p>Mets 0 pour revenir à un loyer au m² identique quelle que soit la surface.</p>",
+   live:p=>`Ici : ${num(p.surface,0)} m², coefficient ${num(p.fLoy,2)}, soit ${num(p.loyerm2)} €/m².`},
+ effetPrix:{g:"mar",t:"Effet de la surface sur le prix",b:"<p>Les petites surfaces se vendent aussi plus cher au m², mais l'écart est bien plus faible qu'à la location (environ 10 à 15 % entre un studio et un T3). Le simulateur applique <code>prix au m² = moyenne × (40 ÷ surface) ^ 0,1</code>.</p><p>Sans cet ajustement, les studios paraîtraient trop rentables : leur loyer augmenterait sans que leur prix suive.</p>",
+   live:p=>`Ici : ${num(p.prixm2,0)} €/m² pour ${num(p.surface,0)} m².`}
+});
 INFO.endet.t="Accord de la banque (taux d'endettement)";
 Object.assign(INFO,{
  ecart:{g:"mar",t:"Écart entre prix et loyer",b:"<p>Pour comparer les villes d'un coup d'œil, on regarde combien d'années de loyer il faut pour payer 1 m². Moins il en faut, plus le loyer rembourse vite l'achat.</p><p>Le pourcentage est le même écart vu dans l'autre sens : le loyer d'une année divisé par le prix. C'est le rendement brut du marché, avant frais. La barre verte compare les villes entre elles.</p>",
@@ -712,11 +724,15 @@ function params(k=ST.city, budget=ST.budget){
   const neuf=p.etat==="neuf";
   const basePm2 = own&&cu("prixm2") ? +ST.custom.prixm2 : c.pm2;
   const baseLm2 = own&&cu("loyerm2")? +ST.custom.loyerm2: c.lm2;
-  p.prixm2 = basePm2*(neuf?1+p.surcoutNeuf/100:1);
-  p.loyerm2= baseLm2*(neuf?1+p.loyerNeuf/100:1)*(p.meuble?1+p.loyerMeuble/100:1);
-  p.prix=budget; p.surface=budget/p.prixm2; p.loyer=Math.round(p.surface*p.loyerm2);
+  // Les moyennes valent pour une surface type (surfRef) ; plus c'est petit, plus le m² est cher, à l'achat et surtout à la location
+  const fS=(S,k)=>Math.pow(p.surfRef/Math.min(150,Math.max(12,S)),k);
+  const pm2=basePm2*(neuf?1+p.surcoutNeuf/100:1);
+  const lm2=baseLm2*(neuf?1+p.loyerNeuf/100:1)*(p.meuble?1+p.loyerMeuble/100:1);
+  p.prix=budget; let S=budget/pm2; for(let i=0;i<30;i++) S=budget/(pm2*fS(S,p.effetPrix));
+  p.surface=S; p.prixm2=budget/S;
   p.fSurf = own&&cu("surface"); p.fLoyer = own&&cu("loyerForce");
-  if(p.fSurf){ p.surface=Math.max(1,+ST.custom.surface); p.prixm2=budget/p.surface; p.loyer=Math.round(p.surface*p.loyerm2); }
+  if(p.fSurf){ p.surface=Math.max(1,+ST.custom.surface); p.prixm2=budget/p.surface; }
+  p.loyerMoy=lm2; p.fLoy=fS(p.surface,p.effetLoyer); p.loyerm2=lm2*p.fLoy; p.loyer=Math.round(p.surface*p.loyerm2);
   if(p.fLoyer){ p.loyer=Math.max(0,+ST.custom.loyerForce); p.loyerm2=p.loyer/p.surface; }
   p.notaire = cu("notaire") ? +ST.custom.notaire : (neuf?2.5:7.5);
   p.agenceAchat = p.achatAg ? p.fraisAgence : 0;
@@ -816,9 +832,9 @@ function render(){
   $("travBlock").hidden=ST.etat==="neuf";
   for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=Math.min(+r.max,ST[id]); fill(r); }
   if(document.activeElement!==$("fo_prix")) $("fo_prix").value=ST.budget;
-  const sv=ST.custom.surface, lv=ST.custom.loyerForce; delete ST.custom.surface; delete ST.custom.loyerForce; const au=params();
+  const sv=ST.custom.surface, lv=ST.custom.loyerForce; delete ST.custom.loyerForce; const auL=params(); delete ST.custom.surface; const au=params();
   if(sv!==undefined) ST.custom.surface=sv; if(lv!==undefined) ST.custom.loyerForce=lv;
-  $("fo_surface").placeholder=`auto : ${num(au.surface,0)}`; $("fo_loyer").placeholder=`auto : ${Math.round(p.surface*au.loyerm2)}`;
+  $("fo_surface").placeholder=`auto : ${num(au.surface,0)}`; $("fo_loyer").placeholder=`auto : ${auL.loyer}`;
   const FT='<span class="forced">forcé</span>';
   $("oPrix").textContent=eur(p.prix); $("oApport").textContent=eur(ST.apport); $("oTaux").textContent=pct(ST.taux); $("oRev").textContent=eur(ST.revenu)+" / mois";
   $("fSurf").innerHTML=`${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf?FT:""}`; $("fLoyer").innerHTML=`${eur(p.loyer)} / mois${p.fLoyer?FT:""}`; $("fNot").textContent=eur(s.notaire+s.fraisAg+p.travaux+p.mobilier);
