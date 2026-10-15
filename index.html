@@ -293,6 +293,7 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
       <div class="sbody">
         <div class="block"><div class="lab"><span><button class="i" data-info="meuble">Vide ou meublé</button></span></div><div class="pills" id="meubles"></div>
           <p class="tipline" id="meubleNote" style="margin-top:12px"></p></div>
+        <div class="block"><div class="lab"><span><button class="i" data-info="structure">Acheter en SCI ou en nom propre (LMNP)</button><button class="qi" data-info="lmnp" aria-label="C'est quoi le LMNP ?">i</button></span></div><div class="pills" id="regs"></div></div>
         <div class="block"><div class="lab"><span><button class="i" data-info="gestionChoix">Qui gère la location ?</button></span></div><div class="pills" id="gests"></div></div>
         <div class="facts">
           <button class="fact" data-info="loyer"><span>Loyer</span><b id="fLoyer2"></b></button>
@@ -624,6 +625,13 @@ INFO.regime.b+="<p><b>LMNP en nom propre</b> : location meublée sans SCI. Tu am
 INFO.prixm2.b=INFO.prixm2.b.replace("hors frais de notaire,","hors frais de notaire et hors commission d'agence (prix net vendeur),");
 INFO.gestion.t="Taux de gestion par une agence";
 Object.assign(INFO,{
+ structure:{g:"fis",t:"SCI ou nom propre",b:"<p><b>SCI à l'IR</b> : société à plusieurs (toi et ta mère par exemple), location vide, les loyers s'ajoutent à tes revenus. Simple, plus-value exonérée après 22 ans (impôt) et 30 ans (prélèvements sociaux).</p><p><b>SCI à l'IS</b> : la société paie l'impôt sur les sociétés (15 % puis 25 %) et amortit le bien. Obligatoire si la SCI loue meublé. Compta plus chère, plus-value lourde à la revente, sortir l'argent coûte 30 %.</p><p><b>LMNP en nom propre</b> : tu achètes seul, sans société, et tu loues meublé. Touche le <b>i</b> pour le détail.</p><p>Choisir la SCI à l'IR repasse en location vide ; choisir le LMNP passe en meublé.</p>",
+   live:(p,s)=>`Ton choix actuel : ${({ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre"})[s.reg]}, cash-flow ${sgn(s.cf5)} par mois.`},
+ lmnp:{g:"fis",t:"Le LMNP, c'est quoi ?",b:"<p><b>LMNP = Loueur en Meublé Non Professionnel.</b> C'est le statut d'un particulier qui loue un logement meublé, en son nom propre, sans créer de société. Tu restes « non professionnel » tant que les loyers meublés ne dépassent pas 23 000 € par an ou ne dépassent pas tes autres revenus d'activité.</p><p><b>Ce que ça change :</b></p><p><b>1. Pas de SCI.</b> Le bien est à ton nom seul : pas de statuts, pas de création de société. En revanche, ta mère ou ton frère ne peuvent pas être associés ; c'est toi seul qui achètes et empruntes.</p><p><b>2. Location meublée obligatoire.</b> Loyer environ 15 % plus élevé, mais mobilier à acheter, baux plus courts et un peu plus de vacance.</p><p><b>3. Presque pas d'impôt pendant des années.</b> Au régime réel, tu déduis les charges et les intérêts, puis tu amortis le bien (hors terrain) sur environ 30 ans et le mobilier sur 7 ans. L'amortissement efface en général tout le revenu imposable pendant 10 à 20 ans. Il ne peut pas créer de déficit, mais le surplus se reporte sans limite.</p><p><b>4. Compta simple.</b> Une déclaration annuelle (liasse 2031), souvent faite avec un comptable en ligne pour 300 à 500 € par an, en partie remboursés par une réduction d'impôt si tu adhères à un centre de gestion agréé.</p><p><b>5. À la revente</b> : plus-value des particuliers (exonérée d'impôt après 22 ans, de prélèvements sociaux après 30 ans), mais depuis 2025 les amortissements déduits sont réintégrés dans la plus-value, ce qui la rend plus lourde qu'en location vide.</p><p><b>Par rapport à la SCI à l'IS</b> : pas de double imposition (l'argent est directement à toi), compta moins chère, plus-value souvent plus douce. <b>Par rapport à la SCI à l'IR</b> : loyers plus élevés et impôt quasi nul, mais tu achètes seul et en meublé.</p>",
+   live:()=>{ const sv=[ST.regime,ST.meuble], r=[["ir",false],["is",true],["lmnp",true]].map(([g,m])=>{ ST.regime=g; ST.meuble=m; return sim(params()).cf5; }); [ST.regime,ST.meuble]=sv;
+     return `Même bien, cash-flow mensuel moyen : SCI à l'IR en vide <b>${sgn(r[0])}</b>, SCI à l'IS en meublé <b>${sgn(r[1])}</b>, LMNP en meublé <b>${sgn(r[2])}</b>.`; }}
+});
+Object.assign(INFO,{
  forcePrix:{g:"bien",t:"Prix exact",b:"<p>Le prix précis d'une annonce, au lieu du curseur. Le curseur s'arrête à 350 000 € ; ici tu peux saisir n'importe quel montant.</p>"},
  forceSurf:{g:"bien",t:"Surface forcée",b:"<p>La surface réelle du bien que tu vises. Sans elle, la surface est estimée avec le prix moyen au m² de la ville. Une fois forcée, le loyer, la copro, la taxe foncière, les travaux et le mobilier se recalculent avec cette surface.</p>",
    live:p=>p.fSurf?`Surface forcée : ${num(p.surface,0)} m², soit <code>${eur(p.prix)} ÷ ${num(p.surface,0)} m² = ${num(p.prixm2,0)} €/m²</code>.`:`Surface estimée : ${num(p.surface,0)} m².`},
@@ -776,6 +784,7 @@ pills("travs","trav",Object.entries(TRAV).map(([k,t])=>[k,t.m2?`${t.n} · ${t.m2
 pills("achats","achat",[["1","Oui, + frais d'agence"],["0","Non, entre particuliers"]]);
 pills("meubles","meuble",[["0","Vide (nu)"],["1","Meublé"]]);
 pills("gests","gest",[["0","Moi-même"],["1","Une agence"]]);
+pills("regs","reg",[["ir","SCI à l'IR"],["is","SCI à l'IS"],["lmnp","LMNP en nom propre"]]);
 $("durees").innerHTML=[15,20,25].map(d=>`<button class="pill" data-duree="${d}" aria-pressed="false">${d} ans</button>`).join("");
 $("adv").innerHTML=ADV.map(g=>`<div class="subt">${g.t}</div><div class="sub">${g.f.map(f=>{
   const lab=`<span class="flab"><button class="i" data-info="${f.id}" type="button">${f.label}</button></span>`, only=f.only?` data-only="${f.only}"`:"";
@@ -794,7 +803,8 @@ function render(){
   document.querySelectorAll("[data-city]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.city===p.city));
   document.querySelectorAll("[data-duree]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.duree===ST.duree));
   const press=(a,v)=>document.querySelectorAll(`[data-${a}]`).forEach(b=>b.setAttribute("aria-pressed",b.dataset[a]===String(v)));
-  press("etat",ST.etat); press("trav",ST.trav); press("achat",ST.achatAg?1:0); press("meuble",ST.meuble?1:0); press("gest",ST.gestionAg?1:0);
+  press("etat",ST.etat); press("trav",ST.trav); press("achat",ST.achatAg?1:0); press("meuble",ST.meuble?1:0); press("gest",ST.gestionAg?1:0); press("reg",s.reg);
+  document.querySelectorAll("[data-reg]").forEach(b=>{ const v=b.dataset.reg; b.title= v==="ir"&&ST.meuble?"En meublé, une SCI doit être à l'IS":(v==="lmnp"&&!ST.meuble?"Le LMNP impose une location meublée":""); });
   $("travBlock").hidden=ST.etat==="neuf";
   for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=Math.min(+r.max,ST[id]); fill(r); }
   if(document.activeElement!==$("fo_prix")) $("fo_prix").value=ST.budget;
@@ -806,12 +816,12 @@ function render(){
   $("fSurf").innerHTML=`${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf?FT:""}`; $("fLoyer").innerHTML=`${eur(p.loyer)} / mois${p.fLoyer?FT:""}`; $("fNot").textContent=eur(s.notaire+s.fraisAg+p.travaux+p.mobilier);
   $("fLoyer2").textContent=`${eur(p.loyer)} / mois`; $("fVac").textContent=`${num(p.vacance)} mois / an`;
   const REGN={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP"}; $("fReg").textContent=REGN[s.reg];
-  $("meubleNote").innerHTML = !p.meuble ? `En vide, la SCI reste à l'IR : les loyers s'ajoutent à tes revenus, sans amortissement.`
+  $("meubleNote").innerHTML = !p.meuble ? `En vide, la SCI est en général à l'IR : les loyers s'ajoutent à tes revenus, sans amortissement. Le LMNP n'est possible qu'en meublé.`
     : (p.regime==="lmnp" ? `Meublé en nom propre (LMNP) : pas de SCI, et l'amortissement du bien efface l'impôt pendant des années.`
-    : `En meublé, une SCI doit passer à l'impôt sur les sociétés (IS) : le calcul bascule automatiquement. Tu peux comparer avec le LMNP en nom propre dans les réglages avancés.`);
+    : `En meublé, une SCI doit passer à l'impôt sur les sociétés (IS). Compare avec le LMNP en nom propre juste en dessous : c'est souvent plus avantageux.`);
   $("sum1").textContent=`${c.n} · ${num(c.pm2,0)} €/m²`;
   $("sum2").textContent=`${p.etat==="neuf"?"Neuf":"Ancien"} · ${eur(p.prix)} · ${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf||p.fLoyer?" · chiffres forcés":""}`;
-  $("sum3").textContent=`${p.meuble?"Meublé":"Vide"} · ${p.gestionAg?"gestion par agence":"gestion par toi"} · loyer ${eur(p.loyer)}`;
+  $("sum3").textContent=`${({ir:"SCI IR",is:"SCI IS",lmnp:"LMNP"})[ST.regime]||""} · ${p.meuble?"Meublé":"Vide"} · ${p.gestionAg?"gestion par agence":"gestion par toi"} · loyer ${eur(p.loyer)}`;
   $("sum4").textContent=`${eur(ST.apport)} d'apport · ${ST.duree} ans à ${pct(ST.taux)}`;
   document.querySelectorAll("[data-only]").forEach(e=>e.hidden=!e.dataset.only.split(" ").includes(s.reg));
   $("a_prixm2").placeholder=`auto : ${num(c.pm2,0)}`; $("a_loyerm2").placeholder=`auto : ${num(c.lm2)}`;
@@ -886,6 +896,8 @@ document.addEventListener("click",e=>{
   if(pl){ const ds=pl.dataset; if(ds.etat) ST.etat=ds.etat; if(ds.trav) ST.trav=ds.trav; if(ds.achat) ST.achatAg=ds.achat==="1";
     if(ds.meuble){ ST.meuble=ds.meuble==="1"; if(!ST.meuble&&ST.regime==="lmnp"){ ST.regime="ir"; $("a_regime").value="ir"; } }
     if(ds.gest) ST.gestionAg=ds.gest==="1"; render(); return; }
+  const rg=e.target.closest("[data-reg]"); if(rg){ const v=rg.dataset.reg; ST.regime=v; $("a_regime").value=v;
+    if(v==="lmnp") ST.meuble=true; if(v==="ir") ST.meuble=false; render(); return; }
   const pk=e.target.closest("[data-pick]"); if(pk){ ST.city=pk.dataset.pick; ["surface","loyerForce"].forEach(id=>delete ST.custom[id]); $("fo_surface").value=""; $("fo_loyer").value=""; ["prixm2","loyerm2","copro","tf"].forEach(id=>{delete ST.custom[id]; $("a_"+id).value="";}); render(); $("answer").scrollIntoView({behavior:"smooth",block:"start"}); return; }
   const g=e.target.closest("[data-go]"); if(g){ const t=$(g.dataset.go); if(t.tagName==="DETAILS") t.open=true; t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
 });
