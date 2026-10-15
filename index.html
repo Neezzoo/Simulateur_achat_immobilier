@@ -214,6 +214,7 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
 .i:hover,.i:focus-visible{color:var(--accent)}
 .i:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 .qi{all:unset;cursor:help;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--ink-3);color:var(--ink-3);font:700 11px var(--f-mono);vertical-align:1px;margin-left:6px}
+.qi.w{width:auto;padding:0 7px;border-radius:10px;font-size:10px}
 .qi:hover,.qi:focus-visible{border-color:var(--accent);color:var(--accent)}
 
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--ink);color:var(--bg);
@@ -293,7 +294,7 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
       <div class="sbody">
         <div class="block"><div class="lab"><span><button class="i" data-info="meuble">Vide ou meublé</button></span></div><div class="pills" id="meubles"></div>
           <p class="tipline" id="meubleNote" style="margin-top:12px"></p></div>
-        <div class="block"><div class="lab"><span><button class="i" data-info="structure">Acheter en SCI ou en nom propre (LMNP)</button><button class="qi" data-info="lmnp" aria-label="C'est quoi le LMNP ?">i</button></span></div><div class="pills" id="regs"></div></div>
+        <div class="block"><div class="lab"><span><button class="i" data-info="structure">SCI, SARL de famille ou nom propre (LMNP)</button><button class="qi w" data-info="lmnp" aria-label="C'est quoi le LMNP ?">LMNP</button><button class="qi w" data-info="sarl" aria-label="C'est quoi la SARL de famille ?">SARL</button></span></div><div class="pills" id="regs"></div></div>
         <div class="block"><div class="lab"><span><button class="i" data-info="gestionChoix">Qui gère la location ?</button></span></div><div class="pills" id="gests"></div></div>
         <div class="facts">
           <button class="fact" data-info="loyer"><span>Loyer</span><b id="fLoyer2"></b></button>
@@ -474,7 +475,7 @@ const ADV = [
   {id:"assur",label:"Assurance emprunteur",u:"% / an",def:.30,step:.01},
   {id:"garantie",label:"Garantie (caution)",u:"% prêt",def:1.2,step:.1},
   {id:"dossier",label:"Frais de dossier",u:"€",def:500,step:50},
-  {id:"creation",label:"Création SCI",u:"€",def:1500,step:100},
+  {id:"creation",label:"Création de la société",auto:1,u:"€",def:1500,step:100},
   {id:"valo",label:"Revalorisation du bien",u:"% / an",def:1,step:.1}]},
  {t:"Location et charges",f:[
   {id:"vacance",label:"Vacance locative",u:"mois / an",step:.25,auto:1},
@@ -489,14 +490,14 @@ const ADV = [
   {id:"entretien",label:"Entretien",u:"€ / an",step:50,auto:1},
   {id:"compta",label:"Compta",u:"€ / an",step:50,auto:1}]},
  {t:"Fiscalité",f:[
-  {id:"regime",type:"select",label:"Structure et régime",opts:[["ir","SCI à l'IR (location nue)"],["is","SCI à l'IS (nu ou meublé)"],["lmnp","En nom propre, LMNP (meublé)"]]},
-  {id:"tmi",type:"select",label:"Ta tranche (TMI)",def:"11",opts:[["0","0 %"],["11","11 %"],["30","30 %"],["41","41 %"],["45","45 %"]],only:"ir lmnp"},
-  {id:"ps",label:"Prélèvements sociaux",u:"%",def:17.2,step:.1,only:"ir lmnp"},
+  {id:"regime",type:"select",label:"Structure et régime",opts:[["ir","SCI à l'IR (location nue)"],["is","SCI à l'IS (nu ou meublé)"],["lmnp","En nom propre, LMNP (meublé)"],["sarl","SARL de famille à l'IR (meublé)"]]},
+  {id:"tmi",type:"select",label:"Ta tranche (TMI)",def:"11",opts:[["0","0 %"],["11","11 %"],["30","30 %"],["41","41 %"],["45","45 %"]],only:"ir lmnp sarl"},
+  {id:"ps",label:"Prélèvements sociaux",u:"%",def:17.2,step:.1,only:"ir lmnp sarl"},
   {id:"irpaye",label:"Impôt payé hors immo",u:"€ / an",def:0,step:50,only:"ir"},
   {id:"plafond",label:"Plafond déficit",u:"€ / an",def:10700,step:100,only:"ir"},
   {id:"travauxded",type:"check",label:"Travaux déductibles l'année 1",def:true,only:"ir"},
-  {id:"terrain",label:"Part terrain",u:"%",def:15,step:1,only:"is lmnp"},
-  {id:"amortb",label:"Amortissement bâti",u:"ans",def:30,step:1,only:"is lmnp"},
+  {id:"terrain",label:"Part terrain",u:"%",def:15,step:1,only:"is lmnp sarl"},
+  {id:"amortb",label:"Amortissement bâti",u:"ans",def:30,step:1,only:"is lmnp sarl"},
   {id:"isred",label:"IS taux réduit",u:"%",def:15,step:1,only:"is"},
   {id:"isnorm",label:"IS taux normal",u:"%",def:25,step:1,only:"is"}]}
 ];
@@ -531,7 +532,7 @@ const INFO = {
  garantie:{g:"fin",t:"Garantie",b:"<p>Ce qui protège la banque si tu ne rembourses plus : une caution (Crédit Logement, souvent 1 à 1,5 % du prêt, en partie restituée à la fin) ou une hypothèque. Elle s'ajoute au coût d'achat.</p>",
    live:(p,s)=>`<code>${eur(s.loan)} × ${num(p.garantie)} % = ${eur(s.garantie)}</code>`},
  dossier:{g:"fin",t:"Frais de dossier",b:"<p>Frais facturés par la banque pour monter le prêt, souvent 500 à 1 000 €, négociables. Déductibles des loyers la première année à l'IR.</p>"},
- creation:{g:"fin",t:"Création de la SCI",b:"<p>Rédaction des statuts (en ligne ou par un notaire), annonce légale et immatriculation : de 300 € en ligne à 2 000 € chez un notaire.</p>"},
+ creation:{g:"fin",t:"Création de la société",b:"<p>Rédaction des statuts (en ligne ou par un notaire), annonce légale et immatriculation : de 300 € en ligne à 2 000 € chez un notaire. Par défaut 1 500 € pour une SCI, 1 200 € pour une SARL de famille (statuts plus l'option pour l'IR), 0 € en LMNP puisqu'il n'y a pas de société.</p>"},
  revenu:{g:"fin",t:"Ton revenu net",b:"<p>Ton salaire net mensuel avant impôt. La banque s'en sert pour calculer ton taux d'endettement.</p>"},
  loyerm2:{g:"mar",t:"Loyer au m²",b:"<p>Loyer mensuel moyen au m² des appartements dans la ville, selon MeilleursAgents. La source ne dit pas si les charges sont incluses : retire 1 à 2 €/m² pour un loyer strictement hors charges. Les petites surfaces se louent plus cher au m².</p>",
    live:p=>{const c=CITIES[p.city];return `${c.n} au ${c.date} : moyenne <b>${num(c.lm2)} €/m²</b>, fourchette ${num(c.lLo)} à ${num(c.lHi)} €/m².`;}},
@@ -625,11 +626,14 @@ INFO.regime.b+="<p><b>LMNP en nom propre</b> : location meublée sans SCI. Tu am
 INFO.prixm2.b=INFO.prixm2.b.replace("hors frais de notaire,","hors frais de notaire et hors commission d'agence (prix net vendeur),");
 INFO.gestion.t="Taux de gestion par une agence";
 Object.assign(INFO,{
- structure:{g:"fis",t:"SCI ou nom propre",b:"<p><b>SCI à l'IR</b> : société à plusieurs (toi et ta mère par exemple), location vide, les loyers s'ajoutent à tes revenus. Simple, plus-value exonérée après 22 ans (impôt) et 30 ans (prélèvements sociaux).</p><p><b>SCI à l'IS</b> : la société paie l'impôt sur les sociétés (15 % puis 25 %) et amortit le bien. Obligatoire si la SCI loue meublé. Compta plus chère, plus-value lourde à la revente, sortir l'argent coûte 30 %.</p><p><b>LMNP en nom propre</b> : tu achètes seul, sans société, et tu loues meublé. Touche le <b>i</b> pour le détail.</p><p>Choisir la SCI à l'IR repasse en location vide ; choisir le LMNP passe en meublé.</p>",
-   live:(p,s)=>`Ton choix actuel : ${({ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre"})[s.reg]}, cash-flow ${sgn(s.cf5)} par mois.`},
- lmnp:{g:"fis",t:"Le LMNP, c'est quoi ?",b:"<p><b>LMNP = Loueur en Meublé Non Professionnel.</b> C'est le statut d'un particulier qui loue un logement meublé, en son nom propre, sans créer de société. Tu restes « non professionnel » tant que les loyers meublés ne dépassent pas 23 000 € par an ou ne dépassent pas tes autres revenus d'activité.</p><p><b>Ce que ça change :</b></p><p><b>1. Pas de SCI.</b> Le bien est à ton nom seul : pas de statuts, pas de création de société. En revanche, ta mère ou ton frère ne peuvent pas être associés ; c'est toi seul qui achètes et empruntes.</p><p><b>2. Location meublée obligatoire.</b> Loyer environ 15 % plus élevé, mais mobilier à acheter, baux plus courts et un peu plus de vacance.</p><p><b>3. Presque pas d'impôt pendant des années.</b> Au régime réel, tu déduis les charges et les intérêts, puis tu amortis le bien (hors terrain) sur environ 30 ans et le mobilier sur 7 ans. L'amortissement efface en général tout le revenu imposable pendant 10 à 20 ans. Il ne peut pas créer de déficit, mais le surplus se reporte sans limite.</p><p><b>4. Compta simple.</b> Une déclaration annuelle (liasse 2031), souvent faite avec un comptable en ligne pour 300 à 500 € par an, en partie remboursés par une réduction d'impôt si tu adhères à un centre de gestion agréé.</p><p><b>5. À la revente</b> : plus-value des particuliers (exonérée d'impôt après 22 ans, de prélèvements sociaux après 30 ans), mais depuis 2025 les amortissements déduits sont réintégrés dans la plus-value, ce qui la rend plus lourde qu'en location vide.</p><p><b>Par rapport à la SCI à l'IS</b> : pas de double imposition (l'argent est directement à toi), compta moins chère, plus-value souvent plus douce. <b>Par rapport à la SCI à l'IR</b> : loyers plus élevés et impôt quasi nul, mais tu achètes seul et en meublé.</p>",
-   live:()=>{ const sv=[ST.regime,ST.meuble], r=[["ir",false],["is",true],["lmnp",true]].map(([g,m])=>{ ST.regime=g; ST.meuble=m; return sim(params()).cf5; }); [ST.regime,ST.meuble]=sv;
-     return `Même bien, cash-flow mensuel moyen : SCI à l'IR en vide <b>${sgn(r[0])}</b>, SCI à l'IS en meublé <b>${sgn(r[1])}</b>, LMNP en meublé <b>${sgn(r[2])}</b>.`; }}
+ structure:{g:"fis",t:"SCI ou nom propre",b:"<p><b>SCI à l'IR</b> : société à plusieurs (toi et ta mère par exemple), location vide, les loyers s'ajoutent à tes revenus. Simple, plus-value exonérée après 22 ans (impôt) et 30 ans (prélèvements sociaux).</p><p><b>SCI à l'IS</b> : la société paie l'impôt sur les sociétés (15 % puis 25 %) et amortit le bien. Obligatoire si la SCI loue meublé. Compta plus chère, plus-value lourde à la revente, sortir l'argent coûte 30 %.</p><p><b>LMNP en nom propre</b> : tu achètes sans société et tu loues meublé. À deux, c'est possible en indivision. Touche la bulle <b>LMNP</b> pour le détail.</p><p><b>SARL de famille</b> : une société entre membres d'une même famille, imposée à l'IR, qui loue meublé avec la fiscalité du LMNP. Touche la bulle <b>SARL</b> pour le détail.</p><p>Choisir la SCI à l'IR repasse en location vide ; choisir le LMNP ou la SARL de famille passe en meublé.</p>",
+   live:(p,s)=>`Ton choix actuel : ${({ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre",sarl:"SARL de famille"})[s.reg]}, cash-flow ${sgn(s.cf5)} par mois.`},
+ lmnp:{g:"fis",t:"Le LMNP, c'est quoi ?",b:"<p><b>LMNP = Loueur en Meublé Non Professionnel.</b> C'est le statut d'un particulier qui loue un logement meublé, en son nom propre, sans créer de société. Tu restes « non professionnel » tant que les loyers meublés ne dépassent pas 23 000 € par an ou ne dépassent pas tes autres revenus d'activité.</p><p><b>Ce que ça change :</b></p><p><b>1. Pas de SCI.</b> Le bien est à ton nom seul : pas de statuts, pas de création de société. Pour acheter à deux, vous achetez en <b>indivision</b> (ou en couple marié ou pacsé) et chacun est LMNP pour sa part. Prévoyez une convention d'indivision chez le notaire, sinon l'un de vous peut forcer la vente. Entre membres d'une même famille, la SARL de famille est une alternative plus solide.</p><p><b>2. Location meublée obligatoire.</b> Loyer environ 15 % plus élevé, mais mobilier à acheter, baux plus courts et un peu plus de vacance.</p><p><b>3. Presque pas d'impôt pendant des années.</b> Au régime réel, tu déduis les charges et les intérêts, puis tu amortis le bien (hors terrain) sur environ 30 ans et le mobilier sur 7 ans. L'amortissement efface en général tout le revenu imposable pendant 10 à 20 ans. Il ne peut pas créer de déficit, mais le surplus se reporte sans limite.</p><p><b>4. Compta simple.</b> Une déclaration annuelle (liasse 2031), souvent faite avec un comptable en ligne pour 300 à 500 € par an, en partie remboursés par une réduction d'impôt si tu adhères à un centre de gestion agréé.</p><p><b>5. À la revente</b> : plus-value des particuliers (exonérée d'impôt après 22 ans, de prélèvements sociaux après 30 ans), mais depuis 2025 les amortissements déduits sont réintégrés dans la plus-value, ce qui la rend plus lourde qu'en location vide.</p><p><b>Par rapport à la SCI à l'IS</b> : pas de double imposition (l'argent est directement à toi), compta moins chère, plus-value souvent plus douce. <b>Par rapport à la SCI à l'IR</b> : loyers plus élevés et impôt quasi nul, mais tu achètes seul et en meublé.</p>",
+   live:()=>{ const sv=[ST.regime,ST.meuble], r=[["ir",false],["is",true],["lmnp",true],["sarl",true]].map(([g,m])=>{ ST.regime=g; ST.meuble=m; return sim(params()).cf5; }); [ST.regime,ST.meuble]=sv;
+     return `Même bien, cash-flow mensuel moyen : SCI à l'IR en vide <b>${sgn(r[0])}</b>, SCI à l'IS en meublé <b>${sgn(r[1])}</b>, LMNP en meublé <b>${sgn(r[2])}</b>, SARL de famille <b>${sgn(r[3])}</b>.`; }},
+ sarl:{g:"fis",t:"La SARL de famille, c'est quoi ?",b:"<p><b>Une SARL dont tous les associés sont de la même famille</b> et qui choisit d'être imposée à l'impôt sur le revenu (IR) au lieu de l'IS. Elle loue en meublé, et chaque associé déclare sa part du bénéfice comme un LMNP.</p><p><b>Qui peut en faire partie :</b> uniquement des parents en ligne directe (parents, enfants, grands-parents), des frères et sœurs, et des conjoints mariés ou pacsés. Un ami, un cousin ou un concubin non pacsé ne peut pas y entrer.</p><p><b>Ce que ça change :</b></p><p><b>1. Être plusieurs proprement.</b> Le bien appartient à la société. Personne ne peut forcer la vente comme en indivision, et la revente de parts suit les statuts.</p><p><b>2. Même impôt que le LMNP.</b> Amortissement du bien et du mobilier, impôt quasi nul pendant des années, aucune double imposition puisque le bénéfice est imposé directement chez les associés.</p><p><b>3. Plus de frais.</b> Création d'environ 1 200 € (statuts, annonce légale, greffe) et comptabilité de société d'environ 1 200 € par an (bilan, assemblée annuelle), contre 300 € en LMNP. Un associé est nommé gérant.</p><p><b>4. Responsabilité limitée</b> aux apports, même si la banque demandera souvent une caution personnelle des associés.</p><p><b>5. À la revente</b>, c'est la plus-value des entreprises, et non celle des particuliers : les amortissements déduits sont taxés au barème plus 17,2 %, le reste de la plus-value à environ 30 %. Une exonération est possible sous conditions (recettes faibles, activité depuis 5 ans) : à faire vérifier par un comptable. Le simulateur ne l'applique pas, par prudence.</p>",
+   live:(p,s)=>{ const sv=[ST.regime,ST.meuble]; ST.regime="lmnp"; ST.meuble=true; const l=sim(params()); ST.regime="sarl"; const f=sim(params()); [ST.regime,ST.meuble]=sv;
+     return `Même bien en meublé : LMNP <b>${sgn(l.cf5)}</b> par mois, SARL de famille <b>${sgn(f.cf5)}</b> par mois. L'écart vient surtout de la compta (${eur(1200)} contre ${eur(300)} par an).`; }}
 });
 Object.assign(INFO,{
  forcePrix:{g:"bien",t:"Prix exact",b:"<p>Le prix précis d'une annonce, au lieu du curseur. Le curseur s'arrête à 350 000 € ; ici tu peux saisir n'importe quel montant.</p>"},
@@ -642,7 +646,7 @@ Object.assign(INFO,{
 
 /* ---------- Calcul ---------- */
 function sim(p){
-  const reg = p.meuble && p.regime==="ir" ? "is" : (!p.meuble && p.regime==="lmnp" ? "ir" : p.regime);
+  const reg = p.meuble && p.regime==="ir" ? "is" : (!p.meuble && (p.regime==="lmnp"||p.regime==="sarl") ? "ir" : p.regime);
   const notaire=p.prix*p.notaire/100, fraisAg=p.prix*p.agenceAchat/100;
   const besoin0=p.prix+notaire+fraisAg+p.travaux+p.mobilier+p.creation+p.dossier;
   const g=p.garantie/100;
@@ -673,7 +677,7 @@ function sim(p){
       if(reg==="is"){
         const res=enc-opex-interest-ass-am-y1;
         if(res<0) cfD+=-res; else { const use=Math.min(res,cfD); cfD-=use; const t=res-use; tax=Math.min(t,42500)*p.isred/100+Math.max(0,t-42500)*p.isnorm/100; }
-      } else { // LMNP réel : l'amortissement ne peut pas créer de déficit, il se reporte
+      } else { // LMNP réel (et SARL de famille à l'IR) : l'amortissement ne peut pas créer de déficit, il se reporte
         const res0=enc-opex-interest-ass-y1; amortCarry+=am;
         if(res0<0) cfD+=-res0;
         else { const use=Math.min(res0,cfD); cfD-=use; const r1=res0-use; const a=Math.min(r1,amortCarry); amortCarry-=a; tax=(r1-a)*(p.tmi+p.ps)/100; }
@@ -685,6 +689,9 @@ function sim(p){
   const pvPart=pv=>pv>0?pv*.10*.19+pv*(1-.2475)*p.ps/100:0; // particuliers, 20 ans de détention
   if(reg==="ir") taxPV=pvPart(last.val-p.prix*1.225);
   else if(reg==="lmnp") taxPV=pvPart(last.val-p.prix*1.225+amortBati);
+  else if(reg==="sarl"){ // plus-value professionnelle : amortissements à court terme (barème + PS), le reste à long terme (30 %)
+    const vnc=p.prix+p.travaux+p.mobilier-amortCum, pv=last.val-vnc, ct=Math.min(Math.max(pv,0),amortCum);
+    taxPV=ct*(p.tmi+p.ps)/100+Math.max(0,pv-ct)*.30; }
   else { const pv=last.val-(p.prix+p.travaux-amortCum+Math.min(amortCum,p.mobilier)); if(pv>0) taxPV=Math.min(pv,42500)*p.isred/100+Math.max(0,pv-42500)*p.isnorm/100; }
   const cum=years.reduce((a,x)=>a+x.cf,0), cf5=years.slice(0,5).reduce((a,x)=>a+x.cf,0)/60;
   const coutTotal=besoin0+garantie;
@@ -717,10 +724,11 @@ function params(k=ST.city, budget=ST.budget){
   p.mobilier = !p.meuble ? 0 : (cu("mobilier") ? +ST.custom.mobilier : Math.max(3000,Math.round(90*p.surface/100)*100));
   p.vacance = cu("vacance") ? +ST.custom.vacance : (p.meuble?1:.5);
   if(!p.gestionAg) p.gestion=0;
-  const lmnp = p.meuble && p.regime==="lmnp";
-  const isReg = (p.meuble && p.regime!=="lmnp") || p.regime==="is";
+  const lmnp = p.meuble && p.regime==="lmnp", sarl = p.meuble && p.regime==="sarl";
+  const isReg = (p.meuble && !lmnp && !sarl) || p.regime==="is";
+  p.creation = cu("creation") ? +ST.custom.creation : (lmnp?0:sarl?1200:1500);
   if(lmnp) p.creation=0;
-  p.compta = cu("compta") ? +ST.custom.compta : (lmnp?300:isReg?1000:400);
+  p.compta = cu("compta") ? +ST.custom.compta : (lmnp?300:sarl?1200:isReg?1000:400);
   p.entretien = cu("entretien") ? +ST.custom.entretien : (neuf?150:300)+(p.meuble?200:0);
   p.copro = own&&cu("copro") ? +ST.custom.copro : Math.round(c.cm2*(neuf?.8:1)*p.surface/10)*10;
   p.tf    = own&&cu("tf")    ? +ST.custom.tf    : Math.round(c.tm2*p.surface/10)*10;
@@ -784,7 +792,7 @@ pills("travs","trav",Object.entries(TRAV).map(([k,t])=>[k,t.m2?`${t.n} · ${t.m2
 pills("achats","achat",[["1","Oui, + frais d'agence"],["0","Non, entre particuliers"]]);
 pills("meubles","meuble",[["0","Vide (nu)"],["1","Meublé"]]);
 pills("gests","gest",[["0","Moi-même"],["1","Une agence"]]);
-pills("regs","reg",[["ir","SCI à l'IR"],["is","SCI à l'IS"],["lmnp","LMNP en nom propre"]]);
+pills("regs","reg",[["ir","SCI à l'IR"],["is","SCI à l'IS"],["lmnp","LMNP en nom propre"],["sarl","SARL de famille"]]);
 $("durees").innerHTML=[15,20,25].map(d=>`<button class="pill" data-duree="${d}" aria-pressed="false">${d} ans</button>`).join("");
 $("adv").innerHTML=ADV.map(g=>`<div class="subt">${g.t}</div><div class="sub">${g.f.map(f=>{
   const lab=`<span class="flab"><button class="i" data-info="${f.id}" type="button">${f.label}</button></span>`, only=f.only?` data-only="${f.only}"`:"";
@@ -804,7 +812,7 @@ function render(){
   document.querySelectorAll("[data-duree]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.duree===ST.duree));
   const press=(a,v)=>document.querySelectorAll(`[data-${a}]`).forEach(b=>b.setAttribute("aria-pressed",b.dataset[a]===String(v)));
   press("etat",ST.etat); press("trav",ST.trav); press("achat",ST.achatAg?1:0); press("meuble",ST.meuble?1:0); press("gest",ST.gestionAg?1:0); press("reg",s.reg);
-  document.querySelectorAll("[data-reg]").forEach(b=>{ const v=b.dataset.reg; b.title= v==="ir"&&ST.meuble?"En meublé, une SCI doit être à l'IS":(v==="lmnp"&&!ST.meuble?"Le LMNP impose une location meublée":""); });
+  document.querySelectorAll("[data-reg]").forEach(b=>{ const v=b.dataset.reg; b.title= v==="ir"&&ST.meuble?"En meublé, une SCI doit être à l'IS":((v==="lmnp"||v==="sarl")&&!ST.meuble?"Impose une location meublée":""); });
   $("travBlock").hidden=ST.etat==="neuf";
   for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=Math.min(+r.max,ST[id]); fill(r); }
   if(document.activeElement!==$("fo_prix")) $("fo_prix").value=ST.budget;
@@ -815,13 +823,14 @@ function render(){
   $("oPrix").textContent=eur(p.prix); $("oApport").textContent=eur(ST.apport); $("oTaux").textContent=pct(ST.taux); $("oRev").textContent=eur(ST.revenu)+" / mois";
   $("fSurf").innerHTML=`${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf?FT:""}`; $("fLoyer").innerHTML=`${eur(p.loyer)} / mois${p.fLoyer?FT:""}`; $("fNot").textContent=eur(s.notaire+s.fraisAg+p.travaux+p.mobilier);
   $("fLoyer2").textContent=`${eur(p.loyer)} / mois`; $("fVac").textContent=`${num(p.vacance)} mois / an`;
-  const REGN={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP"}; $("fReg").textContent=REGN[s.reg];
-  $("meubleNote").innerHTML = !p.meuble ? `En vide, la SCI est en général à l'IR : les loyers s'ajoutent à tes revenus, sans amortissement. Le LMNP n'est possible qu'en meublé.`
+  const REGN={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP",sarl:"SARL de famille"}; $("fReg").textContent=REGN[s.reg];
+  $("meubleNote").innerHTML = !p.meuble ? `En vide, la SCI est en général à l'IR : les loyers s'ajoutent à tes revenus, sans amortissement. Le LMNP et la SARL de famille ne sont possibles qu'en meublé.`
     : (p.regime==="lmnp" ? `Meublé en nom propre (LMNP) : pas de SCI, et l'amortissement du bien efface l'impôt pendant des années.`
-    : `En meublé, une SCI doit passer à l'impôt sur les sociétés (IS). Compare avec le LMNP en nom propre juste en dessous : c'est souvent plus avantageux.`);
+    : p.regime==="sarl" ? `SARL de famille à l'IR : à plusieurs en famille, avec la même fiscalité que le LMNP, mais une compta de société plus chère.`
+    : `En meublé, une SCI doit passer à l'impôt sur les sociétés (IS). Compare avec le LMNP ou la SARL de famille juste en dessous : c'est souvent plus avantageux.`);
   $("sum1").textContent=`${c.n} · ${num(c.pm2,0)} €/m²`;
   $("sum2").textContent=`${p.etat==="neuf"?"Neuf":"Ancien"} · ${eur(p.prix)} · ${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf||p.fLoyer?" · chiffres forcés":""}`;
-  $("sum3").textContent=`${({ir:"SCI IR",is:"SCI IS",lmnp:"LMNP"})[ST.regime]||""} · ${p.meuble?"Meublé":"Vide"} · ${p.gestionAg?"gestion par agence":"gestion par toi"} · loyer ${eur(p.loyer)}`;
+  $("sum3").textContent=`${({ir:"SCI IR",is:"SCI IS",lmnp:"LMNP",sarl:"SARL famille"})[ST.regime]||""} · ${p.meuble?"Meublé":"Vide"} · ${p.gestionAg?"gestion par agence":"gestion par toi"} · loyer ${eur(p.loyer)}`;
   $("sum4").textContent=`${eur(ST.apport)} d'apport · ${ST.duree} ans à ${pct(ST.taux)}`;
   document.querySelectorAll("[data-only]").forEach(e=>e.hidden=!e.dataset.only.split(" ").includes(s.reg));
   $("a_prixm2").placeholder=`auto : ${num(c.pm2,0)}`; $("a_loyerm2").placeholder=`auto : ${num(c.lm2)}`;
@@ -852,7 +861,7 @@ function render(){
   lineChart($("chEq"),s.years.map(x=>x.val-x.crd));
   const row=(k,a,b,cls="")=>`<span class="${cls}">${I(k,a)}</span><span class="${cls}">${b}</span>`;
   $("cost").innerHTML=row("prix","Prix du bien",eur(p.prix))+row("notaire","Frais de notaire",eur(s.notaire))+row("agenceAchat","Frais d'agence",eur(s.fraisAg))+row("travaux","Travaux",eur(p.travaux))+row("mobilier","Mobilier",eur(p.mobilier))
-    +row("creation","Création SCI",eur(p.creation))+row("dossier","Frais de dossier",eur(p.dossier))+row("garantie","Garantie",eur(s.garantie))
+    +row("creation","Création société",eur(p.creation))+row("dossier","Frais de dossier",eur(p.dossier))+row("garantie","Garantie",eur(s.garantie))
     +row("coutTotal","Coût total",eur(s.coutTotal),"tot")+row("apport","Apport","− "+eur(Math.min(p.apport,s.coutTotal)))
     +row("loan","Emprunté",eur(s.loan),"tot")+row("interets","Coût du crédit",eur(s.interets));
   const l=s.years[H-1];
@@ -869,7 +878,7 @@ function render(){
      <span class="cf ${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}<small>par mois</small></span></button>`).join("");
   // récapitulatif
   const TR={aucun:"sans travaux",rafraichir:"rafraîchissement",renover:"rénovation complète"};
-  const RG={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre"};
+  const RG={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre",sarl:"SARL de famille à l'IR"};
   const rl=(k,a,b,cls="")=>`<button class="rl ${cls}" data-info="${k}"><span>${a}</span><span>${b}</span></button>`;
   $("recap").innerHTML=
     rl("city","Ville",c.n)+rl("etat","Bien",p.etat==="neuf"?"Neuf":`Ancien, ${TR[p.trav]}`)
@@ -894,10 +903,10 @@ document.addEventListener("click",e=>{
   const d=e.target.closest("[data-duree]"); if(d){ ST.duree=+d.dataset.duree; render(); return; }
   const pl=e.target.closest("[data-etat],[data-trav],[data-achat],[data-meuble],[data-gest]");
   if(pl){ const ds=pl.dataset; if(ds.etat) ST.etat=ds.etat; if(ds.trav) ST.trav=ds.trav; if(ds.achat) ST.achatAg=ds.achat==="1";
-    if(ds.meuble){ ST.meuble=ds.meuble==="1"; if(!ST.meuble&&ST.regime==="lmnp"){ ST.regime="ir"; $("a_regime").value="ir"; } }
+    if(ds.meuble){ ST.meuble=ds.meuble==="1"; if(!ST.meuble&&(ST.regime==="lmnp"||ST.regime==="sarl")){ ST.regime="ir"; $("a_regime").value="ir"; } }
     if(ds.gest) ST.gestionAg=ds.gest==="1"; render(); return; }
   const rg=e.target.closest("[data-reg]"); if(rg){ const v=rg.dataset.reg; ST.regime=v; $("a_regime").value=v;
-    if(v==="lmnp") ST.meuble=true; if(v==="ir") ST.meuble=false; render(); return; }
+    if(v==="lmnp"||v==="sarl") ST.meuble=true; if(v==="ir") ST.meuble=false; render(); return; }
   const pk=e.target.closest("[data-pick]"); if(pk){ ST.city=pk.dataset.pick; ["surface","loyerForce"].forEach(id=>delete ST.custom[id]); $("fo_surface").value=""; $("fo_loyer").value=""; ["prixm2","loyerm2","copro","tf"].forEach(id=>{delete ST.custom[id]; $("a_"+id).value="";}); render(); $("answer").scrollIntoView({behavior:"smooth",block:"start"}); return; }
   const g=e.target.closest("[data-go]"); if(g){ const t=$(g.dataset.go); if(t.tagName==="DETAILS") t.open=true; t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
 });
@@ -907,7 +916,7 @@ $("fo_surface").addEventListener("input",e=>{ ST.custom.surface=e.target.value; 
 $("fo_loyer").addEventListener("input",e=>{ ST.custom.loyerForce=e.target.value; render(); });
 $("foReset").addEventListener("click",()=>{ delete ST.custom.surface; delete ST.custom.loyerForce; $("fo_surface").value=""; $("fo_loyer").value=""; render(); });
 ADVF.forEach(f=>{ const el=$("a_"+f.id); el.addEventListener(f.type==="check"||f.type==="select"?"change":"input",()=>{
-  const v=f.type==="check"?el.checked:el.value; if(f.id==="regime"){ ST.regime=v; if(v==="lmnp") ST.meuble=true; } else ST.custom[f.id]=v; render(); }); });
+  const v=f.type==="check"?el.checked:el.value; if(f.id==="regime"){ ST.regime=v; if(v==="lmnp"||v==="sarl") ST.meuble=true; } else ST.custom[f.id]=v; render(); }); });
 $("resetAdv").addEventListener("click",()=>{ ST.custom={}; ST.regime="ir"; ADVF.forEach(f=>{ const el=$("a_"+f.id);
   if(f.type==="check") el.checked=f.def; else if(f.type==="select") el.value=f.id==="regime"?"ir":f.def; else el.value=f.auto?"":f.def; }); render(); });
 
