@@ -170,6 +170,16 @@ th{font-size:12px;color:var(--ink-2);font-weight:600}
 td{font-family:var(--f-mono);font-size:13px}
 th:first-child,td:first-child{text-align:left}
 .ok{color:var(--good)} .ko{color:var(--neg)}
+details.force{margin-top:16px;border:1px dashed var(--line);border-radius:14px}
+details.force>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:600;font-size:14.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+details.force>summary::before{content:"+";font-family:var(--f-mono);color:var(--accent)}
+details.force[open]>summary::before{content:"−"}
+details.force>summary .d{font-weight:400;color:var(--ink-3);font-size:13px}
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 14px}
+@media (max-width:560px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.fnote{font-size:13px;color:var(--ink-3);padding:10px 14px 14px;margin:0}
+.lnk{all:unset;cursor:pointer;color:var(--accent);text-decoration:underline;font-weight:600}
+.forced{display:inline-block;font:600 10px var(--f-body);letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .recap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
 @media (max-width:560px){.recap{grid-template-columns:minmax(0,1fr)}}
 .recap .rl{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:15px}
@@ -260,6 +270,15 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
         <div class="amount"><output id="oPrix"></output></div>
         <input type="range" id="budget" min="30000" max="350000" step="1000" aria-label="Prix du bien">
         <div class="scale"><span>30 000 €</span><span>350 000 €</span></div>
+        <details class="force" id="force">
+          <summary>Forcer mes propres chiffres <span class="d">si tu as une annonce précise</span></summary>
+          <div class="fgrid">
+            <div class="f"><span class="flab"><button class="i" data-info="forcePrix" type="button">Prix exact</button></span><div class="box"><input id="fo_prix" type="number" step="500" inputmode="decimal"><span class="u">€</span></div></div>
+            <div class="f"><span class="flab"><button class="i" data-info="forceSurf" type="button">Surface</button></span><div class="box"><input id="fo_surface" type="number" step="1" inputmode="decimal"><span class="u">m²</span></div></div>
+            <div class="f"><span class="flab"><button class="i" data-info="forceLoyer" type="button">Loyer mensuel</button></span><div class="box"><input id="fo_loyer" type="number" step="5" inputmode="decimal"><span class="u">€ / mois</span></div></div>
+          </div>
+          <p class="fnote">Laisse vide pour garder le calcul automatique. Charges, taxe foncière, travaux et frais se forcent dans « Réglages avancés », en bas de page. <button class="lnk" id="foReset" type="button">Tout remettre en automatique</button></p>
+        </details>
         <div class="facts">
           <button class="fact" data-info="surface"><span>Surface à ce prix</span><b id="fSurf"></b></button>
           <button class="fact" data-info="loyer"><span>Loyer estimé</span><b id="fLoyer"></b></button>
@@ -604,6 +623,13 @@ Object.assign(INFO,{
 INFO.regime.b+="<p><b>LMNP en nom propre</b> : location meublée sans SCI. Tu amortis le bien et le mobilier, ce qui efface l'impôt pendant des années, mais l'amortissement ne peut pas créer de déficit. Depuis 2025, les amortissements sont réintégrés dans la plus-value à la revente.</p>";
 INFO.prixm2.b=INFO.prixm2.b.replace("hors frais de notaire,","hors frais de notaire et hors commission d'agence (prix net vendeur),");
 INFO.gestion.t="Taux de gestion par une agence";
+Object.assign(INFO,{
+ forcePrix:{g:"bien",t:"Prix exact",b:"<p>Le prix précis d'une annonce, au lieu du curseur. Le curseur s'arrête à 350 000 € ; ici tu peux saisir n'importe quel montant.</p>"},
+ forceSurf:{g:"bien",t:"Surface forcée",b:"<p>La surface réelle du bien que tu vises. Sans elle, la surface est estimée avec le prix moyen au m² de la ville. Une fois forcée, le loyer, la copro, la taxe foncière, les travaux et le mobilier se recalculent avec cette surface.</p>",
+   live:p=>p.fSurf?`Surface forcée : ${num(p.surface,0)} m², soit <code>${eur(p.prix)} ÷ ${num(p.surface,0)} m² = ${num(p.prixm2,0)} €/m²</code>.`:`Surface estimée : ${num(p.surface,0)} m².`},
+ forceLoyer:{g:"loc",t:"Loyer forcé",b:"<p>Le loyer que tu comptes vraiment demander, par exemple d'après des annonces similaires. Il remplace le loyer calculé avec le loyer moyen au m², y compris le bonus du meublé ou du neuf.</p>",
+   live:p=>p.fLoyer?`Loyer forcé : ${eur(p.loyer)}, soit ${num(p.loyerm2)} €/m².`:`Loyer calculé : ${eur(p.loyer)}.`}
+});
 
 
 /* ---------- Calcul ---------- */
@@ -674,6 +700,9 @@ function params(k=ST.city, budget=ST.budget){
   p.prixm2 = basePm2*(neuf?1+p.surcoutNeuf/100:1);
   p.loyerm2= baseLm2*(neuf?1+p.loyerNeuf/100:1)*(p.meuble?1+p.loyerMeuble/100:1);
   p.prix=budget; p.surface=budget/p.prixm2; p.loyer=Math.round(p.surface*p.loyerm2);
+  p.fSurf = own&&cu("surface"); p.fLoyer = own&&cu("loyerForce");
+  if(p.fSurf){ p.surface=Math.max(1,+ST.custom.surface); p.prixm2=budget/p.surface; p.loyer=Math.round(p.surface*p.loyerm2); }
+  if(p.fLoyer){ p.loyer=Math.max(0,+ST.custom.loyerForce); p.loyerm2=p.loyer/p.surface; }
   p.notaire = cu("notaire") ? +ST.custom.notaire : (neuf?2.5:7.5);
   p.agenceAchat = p.achatAg ? p.fraisAgence : 0;
   p.travaux = cu("travaux") ? +ST.custom.travaux : (neuf?0:Math.round(TRAV[p.trav].m2*p.surface/100)*100);
@@ -767,16 +796,21 @@ function render(){
   const press=(a,v)=>document.querySelectorAll(`[data-${a}]`).forEach(b=>b.setAttribute("aria-pressed",b.dataset[a]===String(v)));
   press("etat",ST.etat); press("trav",ST.trav); press("achat",ST.achatAg?1:0); press("meuble",ST.meuble?1:0); press("gest",ST.gestionAg?1:0);
   $("travBlock").hidden=ST.etat==="neuf";
-  for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=ST[id]; fill(r); }
+  for(const id of ["budget","apport","taux","revenu"]){ const r=$(id); r.value=Math.min(+r.max,ST[id]); fill(r); }
+  if(document.activeElement!==$("fo_prix")) $("fo_prix").value=ST.budget;
+  const sv=ST.custom.surface, lv=ST.custom.loyerForce; delete ST.custom.surface; delete ST.custom.loyerForce; const au=params();
+  if(sv!==undefined) ST.custom.surface=sv; if(lv!==undefined) ST.custom.loyerForce=lv;
+  $("fo_surface").placeholder=`auto : ${num(au.surface,0)}`; $("fo_loyer").placeholder=`auto : ${Math.round(p.surface*au.loyerm2)}`;
+  const FT='<span class="forced">forcé</span>';
   $("oPrix").textContent=eur(p.prix); $("oApport").textContent=eur(ST.apport); $("oTaux").textContent=pct(ST.taux); $("oRev").textContent=eur(ST.revenu)+" / mois";
-  $("fSurf").textContent=`≈ ${num(p.surface,0)} m²`; $("fLoyer").textContent=`${eur(p.loyer)} / mois`; $("fNot").textContent=eur(s.notaire+s.fraisAg+p.travaux+p.mobilier);
+  $("fSurf").innerHTML=`${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf?FT:""}`; $("fLoyer").innerHTML=`${eur(p.loyer)} / mois${p.fLoyer?FT:""}`; $("fNot").textContent=eur(s.notaire+s.fraisAg+p.travaux+p.mobilier);
   $("fLoyer2").textContent=`${eur(p.loyer)} / mois`; $("fVac").textContent=`${num(p.vacance)} mois / an`;
   const REGN={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP"}; $("fReg").textContent=REGN[s.reg];
   $("meubleNote").innerHTML = !p.meuble ? `En vide, la SCI reste à l'IR : les loyers s'ajoutent à tes revenus, sans amortissement.`
     : (p.regime==="lmnp" ? `Meublé en nom propre (LMNP) : pas de SCI, et l'amortissement du bien efface l'impôt pendant des années.`
     : `En meublé, une SCI doit passer à l'impôt sur les sociétés (IS) : le calcul bascule automatiquement. Tu peux comparer avec le LMNP en nom propre dans les réglages avancés.`);
-  $("sum1").textContent=`${c.n} · ${num(p.prixm2,0)} €/m²`;
-  $("sum2").textContent=`${p.etat==="neuf"?"Neuf":"Ancien"} · ${eur(p.prix)} · ≈ ${num(p.surface,0)} m²`;
+  $("sum1").textContent=`${c.n} · ${num(c.pm2,0)} €/m²`;
+  $("sum2").textContent=`${p.etat==="neuf"?"Neuf":"Ancien"} · ${eur(p.prix)} · ${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf||p.fLoyer?" · chiffres forcés":""}`;
   $("sum3").textContent=`${p.meuble?"Meublé":"Vide"} · ${p.gestionAg?"gestion par agence":"gestion par toi"} · loyer ${eur(p.loyer)}`;
   $("sum4").textContent=`${eur(ST.apport)} d'apport · ${ST.duree} ans à ${pct(ST.taux)}`;
   document.querySelectorAll("[data-only]").forEach(e=>e.hidden=!e.dataset.only.split(" ").includes(s.reg));
@@ -829,10 +863,10 @@ function render(){
   const rl=(k,a,b,cls="")=>`<button class="rl ${cls}" data-info="${k}"><span>${a}</span><span>${b}</span></button>`;
   $("recap").innerHTML=
     rl("city","Ville",c.n)+rl("etat","Bien",p.etat==="neuf"?"Neuf":`Ancien, ${TR[p.trav]}`)
-   +rl("prix","Prix du bien",`${eur(p.prix)} · ≈ ${num(p.surface,0)} m²`)+rl("agenceAchat","Agence à l'achat",p.achatAg?`Oui · ${eur(s.fraisAg)}`:"Non")
+   +rl("prix","Prix du bien",`${eur(p.prix)} · ${p.fSurf?"":"≈ "}${num(p.surface,0)} m²${p.fSurf?FT:""}`)+rl("agenceAchat","Agence à l'achat",p.achatAg?`Oui · ${eur(s.fraisAg)}`:"Non")
    +rl("notaire","Frais de notaire",eur(s.notaire))+rl("travaux","Travaux et mobilier",eur(p.travaux+p.mobilier))
    +rl("meuble","Location",`${p.meuble?"Meublé":"Vide"} · ${RG[s.reg]}`)+rl("gestionChoix","Agence pour la gestion",p.gestionAg?`Oui · ${num(p.gestion)} % des loyers`:"Non")
-   +rl("loyer","Loyer",`${eur(p.loyer)} / mois`)+rl("apport","Apport",eur(p.apport))
+   +rl("loyer","Loyer",`${eur(p.loyer)} / mois${p.fLoyer?FT:""}`)+rl("apport","Apport",eur(p.apport))
    +rl("loan","Prêt",eur(s.loan))+rl("taux","Taux et durée",`${pct(p.taux)} sur ${p.duree} ans`)
    +rl("mens","Mensualité",`${eur(s.mens+s.assM)} / mois`)+rl("endet","Taux d'endettement",`<span class="${s.endet<=35?"ok":"ko"}">${pct(s.endet)}</span>`)
    +rl("cf5","Cash-flow mensuel moyen",`<span class="${s.cf5>=0?"ok":"ko"}">${sgn(s.cf5)} / mois</span>`,"big");
@@ -846,16 +880,20 @@ function render(){
 
 /* ---------- Événements ---------- */
 document.addEventListener("click",e=>{
-  const c=e.target.closest("[data-city]"); if(c){ ST.city=c.dataset.city; delete ST.custom.prixm2; delete ST.custom.loyerm2; delete ST.custom.copro; delete ST.custom.tf; ["prixm2","loyerm2","copro","tf"].forEach(id=>$("a_"+id).value=""); render(); return; }
+  const c=e.target.closest("[data-city]"); if(c){ ST.city=c.dataset.city; ["surface","loyerForce"].forEach(id=>delete ST.custom[id]); $("fo_surface").value=""; $("fo_loyer").value=""; delete ST.custom.prixm2; delete ST.custom.loyerm2; delete ST.custom.copro; delete ST.custom.tf; ["prixm2","loyerm2","copro","tf"].forEach(id=>$("a_"+id).value=""); render(); return; }
   const d=e.target.closest("[data-duree]"); if(d){ ST.duree=+d.dataset.duree; render(); return; }
   const pl=e.target.closest("[data-etat],[data-trav],[data-achat],[data-meuble],[data-gest]");
   if(pl){ const ds=pl.dataset; if(ds.etat) ST.etat=ds.etat; if(ds.trav) ST.trav=ds.trav; if(ds.achat) ST.achatAg=ds.achat==="1";
     if(ds.meuble){ ST.meuble=ds.meuble==="1"; if(!ST.meuble&&ST.regime==="lmnp"){ ST.regime="ir"; $("a_regime").value="ir"; } }
     if(ds.gest) ST.gestionAg=ds.gest==="1"; render(); return; }
-  const pk=e.target.closest("[data-pick]"); if(pk){ ST.city=pk.dataset.pick; ["prixm2","loyerm2","copro","tf"].forEach(id=>{delete ST.custom[id]; $("a_"+id).value="";}); render(); $("answer").scrollIntoView({behavior:"smooth",block:"start"}); return; }
+  const pk=e.target.closest("[data-pick]"); if(pk){ ST.city=pk.dataset.pick; ["surface","loyerForce"].forEach(id=>delete ST.custom[id]); $("fo_surface").value=""; $("fo_loyer").value=""; ["prixm2","loyerm2","copro","tf"].forEach(id=>{delete ST.custom[id]; $("a_"+id).value="";}); render(); $("answer").scrollIntoView({behavior:"smooth",block:"start"}); return; }
   const g=e.target.closest("[data-go]"); if(g){ const t=$(g.dataset.go); if(t.tagName==="DETAILS") t.open=true; t.scrollIntoView({behavior:"smooth",block:"start"}); return; }
 });
 for(const id of ["budget","apport","taux","revenu"]) $(id).addEventListener("input",e=>{ ST[id]=+e.target.value; render(); });
+$("fo_prix").addEventListener("input",e=>{ const v=+e.target.value; if(v>=1000){ ST.budget=v; render(); } });
+$("fo_surface").addEventListener("input",e=>{ ST.custom.surface=e.target.value; render(); });
+$("fo_loyer").addEventListener("input",e=>{ ST.custom.loyerForce=e.target.value; render(); });
+$("foReset").addEventListener("click",()=>{ delete ST.custom.surface; delete ST.custom.loyerForce; $("fo_surface").value=""; $("fo_loyer").value=""; render(); });
 ADVF.forEach(f=>{ const el=$("a_"+f.id); el.addEventListener(f.type==="check"||f.type==="select"?"change":"input",()=>{
   const v=f.type==="check"?el.checked:el.value; if(f.id==="regime"){ ST.regime=v; if(v==="lmnp") ST.meuble=true; } else ST.custom[f.id]=v; render(); }); });
 $("resetAdv").addEventListener("click",()=>{ ST.custom={}; ST.regime="ir"; ADVF.forEach(f=>{ const el=$("a_"+f.id);
