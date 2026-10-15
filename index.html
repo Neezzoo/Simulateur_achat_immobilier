@@ -170,6 +170,14 @@ th{font-size:12px;color:var(--ink-2);font-weight:600}
 td{font-family:var(--f-mono);font-size:13px}
 th:first-child,td:first-child{text-align:left}
 .ok{color:var(--good)} .ko{color:var(--neg)}
+.recap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+@media (max-width:560px){.recap{grid-template-columns:minmax(0,1fr)}}
+.recap .rl{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:15px}
+.recap .rl:focus-visible{outline:2px solid var(--accent)}
+.recap .rl>span:first-child{color:var(--ink-2)}
+.recap .rl>span:last-child{font-weight:600;text-align:right}
+.recap .rl.big{grid-column:1/-1;font-size:17px;border-bottom:0;padding-top:16px}
+#apTbl tr.cur td{background:var(--accent-soft);font-weight:600}
 
 /* comparaison */
 .cmp{display:flex;flex-direction:column;gap:8px}
@@ -228,7 +236,7 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
 
 <header class="intro gut">
   <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#16202c"/><path d="M14 54V14.5A2.5 2.5 0 0 1 16.5 12h19A2.5 2.5 0 0 1 38 14.5V54z" fill="#e8795f"/><path d="M38 26h9.5a2.5 2.5 0 0 1 2.5 2.5V54H38z" fill="#f3c2b4"/><g fill="#16202c"><rect x="19" y="18" width="5" height="5" rx="1"/><rect x="28" y="18" width="5" height="5" rx="1"/><rect x="19" y="27" width="5" height="5" rx="1"/><rect x="28" y="27" width="5" height="5" rx="1"/><rect x="19" y="36" width="5" height="5" rx="1"/><rect x="28" y="36" width="5" height="5" rx="1"/><rect x="23" y="45" width="6" height="9" rx="1"/><rect x="41.5" y="31" width="5" height="4" rx="1"/><rect x="41.5" y="39" width="5" height="4" rx="1"/></g><rect x="10" y="53" width="44" height="3" rx="1.5" fill="#f3c2b4"/></svg>
-  <div><h1>Est-ce que le loyer paie le crédit ?</h1><p>Quatre choix, une réponse. Touche un mot souligné ou un <span class="qi" style="cursor:default">i</span> pour avoir l'explication.</p></div>
+  <div><h1>Est-ce que le loyer paie le crédit ?</h1><p>Quatre choix, une réponse et un récapitulatif. Touche un mot souligné ou un <span class="qi" style="cursor:default">i</span> pour avoir l'explication.</p></div>
 </header>
 
 <div class="layout gut">
@@ -295,7 +303,19 @@ footer{padding-block:8px 120px;color:var(--ink-3);font-size:13px}
           <div class="lab"><span><button class="i" data-info="revenu">Ton salaire net</button></span><output id="oRev"></output></div>
           <input type="range" id="revenu" min="800" max="6000" step="10" aria-label="Salaire net">
         </div>
-        <button class="next" data-go="answer">Voir la réponse</button>
+        <button class="next" data-go="s5">Voir mon récapitulatif</button>
+      </div>
+    </details>
+
+    <details class="step" name="etapes" id="s5">
+      <summary><span class="n">5</span><span class="st"><b>Ton récapitulatif</b><span class="sum" id="sum5"></span></span><span class="chev"></span></summary>
+      <div class="sbody">
+        <div class="recap" id="recap"></div>
+        <div class="lab" style="margin-top:22px"><span><b style="color:var(--ink);font-size:16px">Et avec un autre apport ?</b></span></div>
+        <p class="q" style="margin:4px 0 10px">Même bien, même crédit : seul l'apport change. La ligne surlignée est ton choix actuel.</p>
+        <div class="tw" style="margin-top:0"><table id="apTbl"><thead><tr>
+          <th><button class="i" data-info="apport">Apport</button></th><th><button class="i" data-info="loan">Prêt</button></th><th><button class="i" data-info="mens">Mensualité</button></th><th><button class="i" data-info="regle23">Part du loyer</button></th><th><button class="i" data-info="cf5">Cash-flow / mois</button></th>
+        </tr></thead><tbody></tbody></table></div>
       </div>
     </details>
   </div>
@@ -803,6 +823,24 @@ function render(){
      <span><b>${CITIES[k].n}</b>${i===0?'<span class="rank">la plus rentable</span>':""}</span>
      <span class="d">≈ ${num(q.surface,0)} m² · loyer ${eur(q.loyer)} · rendement ${pct(r.rdtB)}</span>
      <span class="cf ${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}<small>par mois</small></span></button>`).join("");
+  // récapitulatif
+  const TR={aucun:"sans travaux",rafraichir:"rafraîchissement",renover:"rénovation complète"};
+  const RG={ir:"SCI à l'IR",is:"SCI à l'IS",lmnp:"LMNP en nom propre"};
+  const rl=(k,a,b,cls="")=>`<button class="rl ${cls}" data-info="${k}"><span>${a}</span><span>${b}</span></button>`;
+  $("recap").innerHTML=
+    rl("city","Ville",c.n)+rl("etat","Bien",p.etat==="neuf"?"Neuf":`Ancien, ${TR[p.trav]}`)
+   +rl("prix","Prix du bien",`${eur(p.prix)} · ≈ ${num(p.surface,0)} m²`)+rl("agenceAchat","Agence à l'achat",p.achatAg?`Oui · ${eur(s.fraisAg)}`:"Non")
+   +rl("notaire","Frais de notaire",eur(s.notaire))+rl("travaux","Travaux et mobilier",eur(p.travaux+p.mobilier))
+   +rl("meuble","Location",`${p.meuble?"Meublé":"Vide"} · ${RG[s.reg]}`)+rl("gestionChoix","Agence pour la gestion",p.gestionAg?`Oui · ${num(p.gestion)} % des loyers`:"Non")
+   +rl("loyer","Loyer",`${eur(p.loyer)} / mois`)+rl("apport","Apport",eur(p.apport))
+   +rl("loan","Prêt",eur(s.loan))+rl("taux","Taux et durée",`${pct(p.taux)} sur ${p.duree} ans`)
+   +rl("mens","Mensualité",`${eur(s.mens+s.assM)} / mois`)+rl("endet","Taux d'endettement",`<span class="${s.endet<=35?"ok":"ko"}">${pct(s.endet)}</span>`)
+   +rl("cf5","Cash-flow mensuel moyen",`<span class="${s.cf5>=0?"ok":"ko"}">${sgn(s.cf5)} / mois</span>`,"big");
+  $("sum5").textContent=`${c.n} · ${eur(p.prix)} · cash-flow ${sgn(s.cf5)} / mois`;
+  const aps=[]; for(let a=10000;a<=40000;a+=5000) aps.push(a);
+  if(!aps.includes(p.apport)) aps.push(p.apport); aps.sort((x,y)=>x-y);
+  $("apTbl").querySelector("tbody").innerHTML=aps.map(a=>{ const r=sim({...p,apport:a});
+    return `<tr class="${a===p.apport?"cur":""}"><td>${eur(a)}</td><td>${eur(r.loan)}</td><td>${eur(r.mens+r.assM)}</td><td>${pct(r.ratio)}</td><td class="${r.cf5>=0?"ok":"ko"}">${sgn(r.cf5)}</td></tr>`; }).join("");
   fillLive();
 }
 
